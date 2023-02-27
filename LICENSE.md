@@ -1,4 +1,5 @@
-license: MIT
+MIT License
+
 Copyright 2022 Jay Convertino
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

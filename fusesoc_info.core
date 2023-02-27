@@ -1,7 +1,7 @@
 CAPI=2:
 
 name: AFRL:streaming_converter:axis_data_width_converter:1.0.0
-description: Convert axis data width for even divides (2/4 4/2 2/2).
+description: Convert axis data width for even divides (2/4 4/2 4/4).
 
 filesets:
   src:
@@ -12,7 +12,6 @@ filesets:
   tb:
     files:
       - tb/tb_axis.v : {file_type: verilogSource}
-      - tb/in.bin    : { file_type: user, copyto: in.bin }
     
   dep:
     depend:
@@ -22,14 +21,148 @@ filesets:
     depend:
       - AFRL:simulation:axis_stimulator
       - AFRL:simulation:clock_stimulator
+      - AFRL:utility:sim_helper
   
 targets:
   default: &default
     filesets: [src, dep]
   
-  sim:
+  sim: &sim
     <<: *default
     default_tool: icarus
-    filesets_append: [tb, dep_tb]
     toplevel: tb_axis
+    hooks:
+      post_run: ["tool_icarus ? (file_check_icarus)"]
+    filesets_append: [tb, dep_tb]
+    parameters:
+      - IN_FILE_NAME
+      - OUT_FILE_NAME
+      - RAND_READY
+      - MASTER_WIDTH
+      - SLAVE_WIDTH
+  
+  sim_reduce:
+    <<: *sim
+    parameters:
+      - IN_FILE_NAME
+      - OUT_FILE_NAME
+      - RAND_READY
+      - MASTER_WIDTH=2
+      - SLAVE_WIDTH=4
+  
+  sim_rand_data_reduce:
+    <<: *sim
+    parameters:
+      - IN_FILE_NAME=random.bin
+      - OUT_FILE_NAME=out_random.bin
+      - RAND_READY
+      - MASTER_WIDTH=2
+      - SLAVE_WIDTH=4
+      
+  sim_rand_ready_rand_data_reduce:
+    <<: *sim
+    parameters:
+      - IN_FILE_NAME=random.bin
+      - OUT_FILE_NAME=out_random.bin
+      - RAND_READY=1
+      - MASTER_WIDTH=2
+      - SLAVE_WIDTH=4
+      
+  sim_8bit_count_data_reduce:
+    <<: *sim
+    parameters:
+      - IN_FILE_NAME=8bit_count.bin
+      - OUT_FILE_NAME=out_8bit_count.bin
+      - RAND_READY
+      - MASTER_WIDTH=2
+      - SLAVE_WIDTH=4
+  
+  sim_rand_ready_8bit_count_data_reduce:
+    <<: *sim
+    parameters:
+      - IN_FILE_NAME=8bit_count.bin
+      - OUT_FILE_NAME=out_8bit_count.bin
+      - RAND_READY=1
+      - MASTER_WIDTH=2
+      - SLAVE_WIDTH=4
+      
+  sim_increase:
+    <<: *sim
+    parameters:
+      - IN_FILE_NAME
+      - OUT_FILE_NAME
+      - RAND_READY
+      - MASTER_WIDTH=4
+      - SLAVE_WIDTH=2
+  
+  sim_rand_data_increase:
+    <<: *sim
+    parameters:
+      - IN_FILE_NAME=random.bin
+      - OUT_FILE_NAME=out_random.bin
+      - RAND_READY
+      - MASTER_WIDTH=4
+      - SLAVE_WIDTH=2
+      
+  sim_rand_ready_rand_data_increase:
+    <<: *sim
+    parameters:
+      - IN_FILE_NAME=random.bin
+      - OUT_FILE_NAME=out_random.bin
+      - RAND_READY=1
+      - MASTER_WIDTH=4
+      - SLAVE_WIDTH=2
+      
+  sim_8bit_count_data_increase:
+    <<: *sim
+    parameters:
+      - IN_FILE_NAME=8bit_count.bin
+      - OUT_FILE_NAME=out_8bit_count.bin
+      - RAND_READY
+      - MASTER_WIDTH=4
+      - SLAVE_WIDTH=2
+  
+  sim_rand_ready_8bit_count_data_increase:
+    <<: *sim
+    parameters:
+      - IN_FILE_NAME=8bit_count.bin
+      - OUT_FILE_NAME=out_8bit_count.bin
+      - RAND_READY=1
+      - MASTER_WIDTH=4
+      - SLAVE_WIDTH=2
     
+    
+parameters:
+  RAND_READY:
+    datatype    : int
+    default     : 0
+    description : If set to anything other than 0, the ready signal to the DUT will be randomized.
+    paramtype   : vlogparam
+
+  MASTER_WIDTH:
+    datatype    : int
+    default     : 4
+    description : Width of master axis output
+    paramtype   : vlogparam
+    
+  SLAVE_WIDTH:
+    datatype    : int
+    default     : 4
+    description : Width of slave axis output
+    paramtype   : vlogparam
+    
+  IN_FILE_NAME:
+    datatype    : file
+    default     : const_data.bin
+    description : input file name
+    paramtype   : vlogparam
+
+  OUT_FILE_NAME:
+    datatype    : file
+    default     : out_const_data.bin
+    description : output file name
+    paramtype   : vlogparam
+    
+scripts:
+  file_check_icarus:
+    cmd : [python3, file_check.py, icarus]

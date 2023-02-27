@@ -43,10 +43,12 @@ module axis_data_width_converter #(
     output [(MASTER_WIDTH*8)-1:0] m_axis_tdata,
     output                        m_axis_tvalid,
     input                         m_axis_tready,
+    output                        m_axis_tlast,
     //slave input axis
     input  [(SLAVE_WIDTH*8)-1:0]  s_axis_tdata,
     input                         s_axis_tvalid,
-    output                        s_axis_tready
+    output                        s_axis_tready,
+    input                         s_axis_tlast
   );
   
   `include "util_helper_math.vh"
@@ -60,11 +62,13 @@ module axis_data_width_converter #(
       assign m_axis_tdata  = s_axis_tdata;
       assign m_axis_tvalid = s_axis_tvalid;
       assign s_axis_tready = m_axis_tready;
-    //slave is smaller, use register build up method.
+      assign m_axis_tlast  = s_axis_tlast;
+    //slave is smaller, use register build up method. (increase)
     end else if(SLAVE_WIDTH < MASTER_WIDTH) begin
       //buffer
       reg [(SLAVE_WIDTH*8)-1:0]  reg_data_buffer[MASTER_WIDTH/SLAVE_WIDTH-1:0];
-      reg         reg_data_valid;
+      reg reg_data_valid;
+      reg reg_data_last;
       //counter
       reg [clogb2(MASTER_WIDTH):0] counter;
       //index
@@ -76,6 +80,8 @@ module axis_data_width_converter #(
       assign s_axis_tready  = (m_axis_tready | ~p_m_axis_tready) & arstn;
       //send out a reg valid to match reg data
       assign m_axis_tvalid  = reg_data_valid;
+      //send out a reg tlast to match reg data
+      assign m_axis_tlast = reg_data_last & reg_data_valid;
       
       //generate wires to connect reg_data_buffer to tdata out. reg_valid selects buffer if data is valid.
       for(gen_index = 0; gen_index < (MASTER_WIDTH/SLAVE_WIDTH); gen_index = gen_index + 1) begin
@@ -90,6 +96,7 @@ module axis_data_width_converter #(
             reg_data_buffer[index] <= 0;
           end
           reg_data_valid    <= 0;
+          reg_data_last     <= 0;
           counter           <= 0;
           p_m_axis_tready   <= 0;
         end else begin
@@ -97,6 +104,7 @@ module axis_data_width_converter #(
           //if we are still sending data, the if below will blow this up (in a good way).
           if(m_axis_tready == 1'b1) begin
             reg_data_valid  <= 0;
+            reg_data_last   <= 0;
             //no valid data, so lets 0 out previous to allow a valid assert of data without ready to happen.
             p_m_axis_tready <= 0;
           end
@@ -104,6 +112,8 @@ module axis_data_width_converter #(
           //valid data and we are ready for data, or per axis standard we pump out valid data and wait for ready to continue.
           if((s_axis_tvalid == 1'b1) && (~p_m_axis_tready || m_axis_tready)) begin
             reg_data_buffer[counter] <= s_axis_tdata;
+            
+            reg_data_last <= reg_data_last | s_axis_tlast;
             
             p_m_axis_tready <= 1'b1;
             
@@ -116,11 +126,12 @@ module axis_data_width_converter #(
           end
         end
       end
-    //slave input is larger then master register method
+    //slave input is larger then master register method (reduce)
     end else begin
       //buffer
       reg [(MASTER_WIDTH*8)-1:0] reg_data_buffer[SLAVE_WIDTH/MASTER_WIDTH-1:0];
       reg                        reg_data_valid;
+      reg                        reg_data_last[SLAVE_WIDTH/MASTER_WIDTH-1:0];
       reg [(MASTER_WIDTH*8)-1:0] reg_m_axis_tdata;
       
       //counter
@@ -144,6 +155,7 @@ module axis_data_width_converter #(
       //output for master axis data
       assign m_axis_tdata  = (reg_data_valid == 1'b1 ? reg_data_buffer[counter] : 0);
       assign m_axis_tvalid = reg_data_valid;
+      assign m_axis_tlast  = (reg_data_valid == 1'b1 ? reg_data_last[counter] : 0);
       
       //process data
       always @(posedge aclk) begin
@@ -151,10 +163,11 @@ module axis_data_width_converter #(
         if(arstn == 1'b0) begin
           for(index = 0; index < (SLAVE_WIDTH/MASTER_WIDTH); index = index + 1) begin
             reg_data_buffer[index] <= 0;
+            reg_data_last[index]   <= 0;
           end
           reg_data_valid    <= 0;
           reg_m_axis_tdata  <= 0;
-          counter           <= 0;
+          counter           <= (SLAVE_WIDTH/MASTER_WIDTH)-1;
           p_m_axis_tready   <= 0;
         end else begin
           //when ready, 0 out data so we don't send out the same thing over and over.
@@ -171,6 +184,7 @@ module axis_data_width_converter #(
           if((s_axis_tvalid == 1'b1) && (counter == (SLAVE_WIDTH/MASTER_WIDTH)-1) && (~p_m_axis_tready || m_axis_tready)) begin
             for(index = 0; index < (SLAVE_WIDTH/MASTER_WIDTH); index = index + 1) begin
               reg_data_buffer[index] <= split_s_axis_tdata[index];
+              reg_data_last[index] <= ((index == (SLAVE_WIDTH/MASTER_WIDTH)-1) ? s_axis_tlast : 0);
             end
             
             counter <= 0;

@@ -28,11 +28,17 @@
 
 `timescale 1 ns/10 ps
 
-module tb_axis;
+module tb_axis #(
+  parameter IN_FILE_NAME = in.bin,
+  parameter OUT_FILE_NAME = out.bin,
+  parameter RAND_READY = 0,
+  parameter SLAVE_WIDTH = 2,
+  parameter MASTER_WIDTH = 4
+  )();
   //parameter or local param bus, user and dest width? and files as well? 
   
-  localparam SBUS_WIDTH = 2;
-  localparam MBUS_WIDTH = 4;
+  localparam SBUS_WIDTH = SLAVE_WIDTH;
+  localparam MBUS_WIDTH = MASTER_WIDTH;
   localparam USER_WIDTH = 1;
   localparam DEST_WIDTH = 1;
   
@@ -82,7 +88,7 @@ module tb_axis;
     .BUS_WIDTH(SBUS_WIDTH),
     .USER_WIDTH(USER_WIDTH),
     .DEST_WIDTH(DEST_WIDTH),
-    .FILE("in.bin")
+    .FILE(IN_FILE_NAME)
   ) slave_axis_stim (
     // output to slave
     .m_axis_aclk(tb_dut_clk),
@@ -107,17 +113,20 @@ module tb_axis;
     .m_axis_tdata(tb_dut_data),
     .m_axis_tvalid(tb_dut_valid),
     .m_axis_tready(tb_dut_ready),
+    .m_axis_tlast(tb_dut_last),
     //slave data in interface
     .s_axis_tdata(tb_stim_data),
     .s_axis_tvalid(tb_stim_valid),
-    .s_axis_tready(tb_stim_ready)
+    .s_axis_tready(tb_stim_ready),
+    .s_axis_tlast(tb_stim_last)
   );
   
   master_axis_stimulus #(
     .BUS_WIDTH(MBUS_WIDTH),
     .USER_WIDTH(USER_WIDTH),
     .DEST_WIDTH(DEST_WIDTH),
-    .FILE("out.bin")
+    .RAND_READY(RAND_READY),
+    .FILE(OUT_FILE_NAME)
   ) master_axis_stim (
     // write
     .s_axis_aclk(tb_dut_clk),
