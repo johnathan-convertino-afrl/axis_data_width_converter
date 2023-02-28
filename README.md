@@ -12,8 +12,6 @@
    
 ---
 
-![rtl_img](./rtl.png)
-
 ### IP USAGE
 #### INSTRUCTIONS
 
