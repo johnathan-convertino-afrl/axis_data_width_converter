@@ -1,5 +1,5 @@
 # AXIS DATA WIDTH CONVERTER
-## Simple data width converted for ratios that divide into one another.
+### Simple data width converted for ratios that divide into one another.
 ---
 
    author: Jay Convertino   
@@ -35,9 +35,23 @@ round number. 5/2 is a fractional number that will not work with this core.
 #### TB
 
 * tb_axis.v
-* in.bin
   
 ### fusesoc
 
 * fusesoc_info.core created.
-* Simulation uses icarus to run data through the core.
+* Simulation uses icarus to run data through the core. Verification added, will auto end sim when done.
+
+#### TARGETS
+* RUN WITH: (fusesoc run --target=sim VENDER:CORE:NAME:VERSION)
+  - default (for IP integration builds)
+  - sim
+  - sim_reduce
+  - sim_rand_data_reduce
+  - sim_rand_ready_rand_data_reduce
+  - sim_8bit_count_data_reduce
+  - sim_rand_ready_8bit_count_data_reduce
+  - sim_increase
+  - sim_rand_data_increase
+  - sim_rand_ready_rand_data_increase
+  - sim_8bit_count_data_increase
+  - sim_rand_ready_8bit_count_data_increase
