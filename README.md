@@ -22,8 +22,9 @@ round number. 5/2 is a fractional number that will not work with this core.
 
 #### PARAMETERS
 
-* slave_width  : DEFAULT = 1 : Slave width in bytes.
-* master_width : DEFAULT = 1 : Master width in bytes.
+* SLAVE_WIDTH  : DEFAULT = 1 : Slave width in bytes.
+* MASTER_WIDTH : DEFAULT = 1 : Master width in bytes.
+* REVERSE : DEFAULT = 0 : Set to 1 to reverse the order of how bytes are output.
 
 ### COMPONENTS
 #### SRC
