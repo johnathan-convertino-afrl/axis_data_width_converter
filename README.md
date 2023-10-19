@@ -12,6 +12,24 @@
    
 ---
 
+### Version
+#### Current
+  - V1.0.0 - initial release
+
+#### Previous
+  - none
+
+### Dependencies
+#### Build
+
+  - AFRL:utility:helper:1.0.0
+
+#### Simulation
+
+  - AFRL:simulation:axis_stimulator
+  - AFRL:simulation:clock_stimulator
+  - AFRL:utility:sim_helper
+
 ### IP USAGE
 #### INSTRUCTIONS
 
@@ -41,6 +59,7 @@ round number. 5/2 is a fractional number that will not work with this core.
 * Simulation uses icarus to run data through the core. Verification added, will auto end sim when done.
 
 #### TARGETS
+
 * RUN WITH: (fusesoc run --target=sim VENDER:CORE:NAME:VERSION)
   - default (for IP integration builds)
   - sim

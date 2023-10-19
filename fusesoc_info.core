@@ -1,7 +1,7 @@
 CAPI=2:
 
 name: AFRL:streaming_converter:axis_data_width_converter:1.0.1
-description: Convert axis data width for even divides (2/4 4/2 4/4).
+description: Convert axis data width for even divides (2/4 4/2 4/4 1/11 11/1).
 
 filesets:
   src:
@@ -25,10 +25,12 @@ filesets:
   
 targets:
   default: &default
+    description: Default for IP intergration.
     filesets: [src, dep]
   
   sim: &sim
     <<: *default
+    description: Test 1:1 conversion.
     default_tool: icarus
     toplevel: tb_axis
     hooks:
@@ -43,6 +45,7 @@ targets:
   
   sim_reduce:
     <<: *sim
+    description: Test data reduction.
     parameters:
       - IN_FILE_NAME
       - OUT_FILE_NAME
@@ -52,6 +55,7 @@ targets:
   
   sim_rand_data_reduce:
     <<: *sim
+    description: Test data reduction with random data
     parameters:
       - IN_FILE_NAME=random.bin
       - OUT_FILE_NAME=out_random.bin
@@ -61,6 +65,7 @@ targets:
       
   sim_rand_ready_rand_data_reduce:
     <<: *sim
+    description: Test data reduction with random ready and random data.
     parameters:
       - IN_FILE_NAME=random.bin
       - OUT_FILE_NAME=out_random.bin
@@ -70,6 +75,7 @@ targets:
       
   sim_8bit_count_data_reduce:
     <<: *sim
+    description: Test data reduction with counter data.
     parameters:
       - IN_FILE_NAME=8bit_count.bin
       - OUT_FILE_NAME=out_8bit_count.bin
@@ -79,6 +85,7 @@ targets:
   
   sim_rand_ready_8bit_count_data_reduce:
     <<: *sim
+    description: Test data reduction with counter data, and random ready.
     parameters:
       - IN_FILE_NAME=8bit_count.bin
       - OUT_FILE_NAME=out_8bit_count.bin
@@ -88,6 +95,7 @@ targets:
       
   sim_increase:
     <<: *sim
+    description: Test data increase.
     parameters:
       - IN_FILE_NAME
       - OUT_FILE_NAME
@@ -97,6 +105,7 @@ targets:
   
   sim_rand_data_increase:
     <<: *sim
+    description: Test data increase with random data.
     parameters:
       - IN_FILE_NAME=random.bin
       - OUT_FILE_NAME=out_random.bin
@@ -106,6 +115,7 @@ targets:
       
   sim_rand_ready_rand_data_increase:
     <<: *sim
+    description: Test data increase with random data, and random ready.
     parameters:
       - IN_FILE_NAME=random.bin
       - OUT_FILE_NAME=out_random.bin
@@ -115,6 +125,7 @@ targets:
       
   sim_8bit_count_data_increase:
     <<: *sim
+    description: Test data increase with count data.
     parameters:
       - IN_FILE_NAME=8bit_count.bin
       - OUT_FILE_NAME=out_8bit_count.bin
@@ -124,6 +135,7 @@ targets:
   
   sim_rand_ready_8bit_count_data_increase:
     <<: *sim
+    description: Test data increase with count data, and random ready.
     parameters:
       - IN_FILE_NAME=8bit_count.bin
       - OUT_FILE_NAME=out_8bit_count.bin
