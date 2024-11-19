@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("mit",["Information"],[["MIT",,[[,"License MIT",,,0,"File:axis_data_width_converter.v:License_MIT"]]]]);

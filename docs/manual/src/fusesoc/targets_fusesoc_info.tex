@@ -1,0 +1,152 @@
+\subsubsection{fusesoc\_info Targets}
+\begin{itemize}
+\item default
+	\begin{itemize}
+	\item[$\space$] Info: Default for IP intergration.
+	\item src
+	\item dep
+	\end{itemize}
+\item sim
+	\begin{itemize}
+	\item[$\space$] Info: Test 1:1 conversion.
+	\item src
+	\item dep
+	\item tb
+	\item dep\_tb
+	\item IN\_FILE\_NAME
+	\item OUT\_FILE\_NAME
+	\item RAND\_READY
+	\item MASTER\_WIDTH
+	\item SLAVE\_WIDTH
+	\end{itemize}
+\item sim\_reduce
+	\begin{itemize}
+	\item[$\space$] Info: Test data reduction.
+	\item src
+	\item dep
+	\item tb
+	\item dep\_tb
+	\item IN\_FILE\_NAME
+	\item OUT\_FILE\_NAME
+	\item RAND\_READY
+	\item MASTER\_WIDTH=2
+	\item SLAVE\_WIDTH=4
+	\end{itemize}
+\item sim\_rand\_data\_reduce
+	\begin{itemize}
+	\item[$\space$] Info: Test data reduction with random data
+	\item src
+	\item dep
+	\item tb
+	\item dep\_tb
+	\item IN\_FILE\_NAME=random.bin
+	\item OUT\_FILE\_NAME=out\_random.bin
+	\item RAND\_READY
+	\item MASTER\_WIDTH=2
+	\item SLAVE\_WIDTH=4
+	\end{itemize}
+\item sim\_rand\_ready\_rand\_data\_reduce
+	\begin{itemize}
+	\item[$\space$] Info: Test data reduction with random ready and random data.
+	\item src
+	\item dep
+	\item tb
+	\item dep\_tb
+	\item IN\_FILE\_NAME=random.bin
+	\item OUT\_FILE\_NAME=out\_random.bin
+	\item RAND\_READY=1
+	\item MASTER\_WIDTH=2
+	\item SLAVE\_WIDTH=4
+	\end{itemize}
+\item sim\_8bit\_count\_data\_reduce
+	\begin{itemize}
+	\item[$\space$] Info: Test data reduction with counter data.
+	\item src
+	\item dep
+	\item tb
+	\item dep\_tb
+	\item IN\_FILE\_NAME=8bit\_count.bin
+	\item OUT\_FILE\_NAME=out\_8bit\_count.bin
+	\item RAND\_READY
+	\item MASTER\_WIDTH=2
+	\item SLAVE\_WIDTH=4
+	\end{itemize}
+\item sim\_rand\_ready\_8bit\_count\_data\_reduce
+	\begin{itemize}
+	\item[$\space$] Info: Test data reduction with counter data, and random ready.
+	\item src
+	\item dep
+	\item tb
+	\item dep\_tb
+	\item IN\_FILE\_NAME=8bit\_count.bin
+	\item OUT\_FILE\_NAME=out\_8bit\_count.bin
+	\item RAND\_READY=1
+	\item MASTER\_WIDTH=2
+	\item SLAVE\_WIDTH=4
+	\end{itemize}
+\item sim\_increase
+	\begin{itemize}
+	\item[$\space$] Info: Test data increase.
+	\item src
+	\item dep
+	\item tb
+	\item dep\_tb
+	\item IN\_FILE\_NAME
+	\item OUT\_FILE\_NAME
+	\item RAND\_READY
+	\item MASTER\_WIDTH=4
+	\item SLAVE\_WIDTH=2
+	\end{itemize}
+\item sim\_rand\_data\_increase
+	\begin{itemize}
+	\item[$\space$] Info: Test data increase with random data.
+	\item src
+	\item dep
+	\item tb
+	\item dep\_tb
+	\item IN\_FILE\_NAME=random.bin
+	\item OUT\_FILE\_NAME=out\_random.bin
+	\item RAND\_READY
+	\item MASTER\_WIDTH=4
+	\item SLAVE\_WIDTH=2
+	\end{itemize}
+\item sim\_rand\_ready\_rand\_data\_increase
+	\begin{itemize}
+	\item[$\space$] Info: Test data increase with random data, and random ready.
+	\item src
+	\item dep
+	\item tb
+	\item dep\_tb
+	\item IN\_FILE\_NAME=random.bin
+	\item OUT\_FILE\_NAME=out\_random.bin
+	\item RAND\_READY=1
+	\item MASTER\_WIDTH=4
+	\item SLAVE\_WIDTH=2
+	\end{itemize}
+\item sim\_8bit\_count\_data\_increase
+	\begin{itemize}
+	\item[$\space$] Info: Test data increase with count data.
+	\item src
+	\item dep
+	\item tb
+	\item dep\_tb
+	\item IN\_FILE\_NAME=8bit\_count.bin
+	\item OUT\_FILE\_NAME=out\_8bit\_count.bin
+	\item RAND\_READY
+	\item MASTER\_WIDTH=4
+	\item SLAVE\_WIDTH=2
+	\end{itemize}
+\item sim\_rand\_ready\_8bit\_count\_data\_increase
+	\begin{itemize}
+	\item[$\space$] Info: Test data increase with count data, and random ready.
+	\item src
+	\item dep
+	\item tb
+	\item dep\_tb
+	\item IN\_FILE\_NAME=8bit\_count.bin
+	\item OUT\_FILE\_NAME=out\_8bit\_count.bin
+	\item RAND\_READY=1
+	\item MASTER\_WIDTH=4
+	\item SLAVE\_WIDTH=2
+	\end{itemize}
+\end{itemize}

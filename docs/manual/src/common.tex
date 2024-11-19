@@ -1,0 +1,135 @@
+\begin{titlepage}
+  \begin{center}
+
+  {\Huge AXIS\_DATA\_WIDTH\_CONVERTER}
+
+  \vspace{25mm}
+
+  \includegraphics[width=0.90\textwidth,height=\textheight,keepaspectratio]{img/AFRL.png}
+
+  \vspace{25mm}
+
+  \today
+
+  \vspace{15mm}
+
+  {\Large Jay Convertino}
+
+  \end{center}
+\end{titlepage}
+
+\tableofcontents
+
+\newpage
+
+\section{Usage}
+
+\subsection{Introduction}
+
+\par
+This data width converter is for even integer divides of slave to master or
+master to slave. Example this core can go from 4 bytes to 2 bytes or 2 bytes to
+4 bytes. It can not go from 5 bytes to 2 bytes or 2 bytes to 5 bytes. 4/2 is 2, a
+round number. 5/2 is a fractional number that will not work with this core.
+
+\subsection{Dependencies}
+
+\par
+The following are the dependencies of the cores.
+
+\begin{itemize}
+  \item fusesoc 2.X
+  \item iverilog (simulation)
+  \item cocotb (simulation)
+\end{itemize}
+
+\input{src/fusesoc/depend_fusesoc_info.tex}
+
+\subsection{In a Project}
+\par
+Simply use this core between a sink and source AXIS devices. This will convert from one BUS size to another. Check the code to see if others will work correctly.
+
+\section{Architecture}
+\par
+The only module is the axis\_data\_width\_converter module. It is listed below.
+
+\begin{itemize}
+  \item \textbf{axis\_data\_width\_converter } Impliment an algorithm to convert BUS data interfaces in even mutlples (see core for documentation).
+\end{itemize}
+
+\par
+This core only uses a combinatoral method to divide the accumulator. Since all weights are powers of two this is done with a part select based on bit position.
+
+\par
+The always block has the following steps.
+\begin{enumerate}
+\item If there is valid data, sum the new data into the accumulator and remove the top element in the buffer from the accumulator.
+\item Insert the new element into the buffer.
+\item Shift the buffer to so that old elements at the top of the buffer are shifted out.
+\end{enumerate}
+
+Please see \ref{Module Documentation} for more information.
+
+\section{Building}
+
+\par
+The AXIS data width converter core is written in Verilog 2001. They should synthesize in any modern FPGA software. The core comes as a fusesoc packaged core and can be
+included in any other core. Be sure to make sure you have meet the dependencies listed in the previous section.
+
+\subsection{fusesoc}
+\par
+Fusesoc is a system for building FPGA software without relying on the internal project management of the tool. Avoiding vendor lock in to Vivado or Quartus.
+These cores, when included in a project, can be easily integrated and targets created based upon the end developer needs. The core by itself is not a part of
+a system and should be integrated into a fusesoc based system. Simulations are setup to use fusesoc and are a part of its targets.
+
+\subsection{Source Files}
+
+\input{src/fusesoc/files_fusesoc_info.tex}
+
+\subsection{Targets}
+
+\input{src/fusesoc/targets_fusesoc_info.tex}
+
+\subsection{Directory Guide}
+
+\par
+Below highlights important folders from the root of the directory.
+
+\begin{enumerate}
+  \item \textbf{docs} Contains all documentation related to this project.
+    \begin{itemize}
+      \item \textbf{manual} Contains user manual and github page that are generated from the latex sources.
+    \end{itemize}
+  \item \textbf{src} Contains source files for the core
+  \item \textbf{tb} Contains test bench files for iverilog and cocotb
+    \begin{itemize}
+      \item \textbf{cocotb} testbench files
+    \end{itemize}
+\end{enumerate}
+
+\newpage
+
+\section{Simulation}
+\par
+There are a few different simulations that can be run for this core.
+
+\subsection{iverilog}
+\par
+iverilog is used for simple test benches for quick verification, visually, of the core.
+
+\subsection{cocotb}
+\par
+Future simulations will use cocotb. This feature is not yet implemented.
+
+\newpage
+
+\section{Module Documentation} \label{Module Documentation}
+
+\par
+There is a single async module for this core.
+
+\begin{itemize}
+\item \textbf{axis\_data\_width\_converter} AXIS data width converter, converts from one BUS data size to another.\\
+\end{itemize}
+The next sections document the module in great detail.
+

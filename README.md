@@ -1,5 +1,8 @@
 # AXIS DATA WIDTH CONVERTER
 ### Simple data width converted for ratios that divide into one another.
+
+![image](docs/manual/img/AFRL.png)
+
 ---
 
    author: Jay Convertino   
@@ -19,7 +22,13 @@
 #### Previous
   - none
 
-### Dependencies
+### DOCUMENTATION
+  For detailed usage information, please navigate to one of the following sources. They are the same, just in a different format.
+
+  - [axis_data_width_converter.pdf](docs/manual/axis_data_width_converter.pdf)
+  - [github page](https://johnathan-convertino-afrl.github.io/axis_data_width_converter/)
+
+### DEPENDENCIES
 #### Build
 
   - AFRL:utility:helper:1.0.0
@@ -30,15 +39,7 @@
   - AFRL:simulation:clock_stimulator
   - AFRL:utility:sim_helper
 
-### IP USAGE
-#### INSTRUCTIONS
-
-This data width converter is for even integer divides of slave to master or  
-master to slave. Example this core can go from 4 bytes to 2 bytes or 2 bytes to   
-4 bytes. It can not go from 5 bytes to 2 bytes or 2 bytes to 5 bytes. 4/2 is 2, a   
-round number. 5/2 is a fractional number that will not work with this core.  
-
-#### PARAMETERS
+### PARAMETERS
 
 * SLAVE_WIDTH  : DEFAULT = 1 : Slave width in bytes.
 * MASTER_WIDTH : DEFAULT = 1 : Master width in bytes.
@@ -53,12 +54,12 @@ round number. 5/2 is a fractional number that will not work with this core.
 
 * tb_axis.v
   
-### fusesoc
+### FUSESOC
 
 * fusesoc_info.core created.
 * Simulation uses icarus to run data through the core. Verification added, will auto end sim when done.
 
-#### TARGETS
+#### Targets
 
 * RUN WITH: (fusesoc run --target=sim VENDER:CORE:NAME:VERSION)
   - default (for IP integration builds)

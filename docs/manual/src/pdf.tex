@@ -1,0 +1,21 @@
+\documentclass[usletter]{article}
+\usepackage{DejaVuSans}
+\renewcommand*\familydefault{\sfdefault}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{listings}
+\lstset{
+  breaklines=true,
+  postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+}
+\usepackage{pdfpages}
+\usepackage[hidelinks]{hyperref}
+\begin{document}
+
+  \include{src/common.tex}
+
+  %module documentation section
+
+  \includepdf[pages=-, addtotoc={1,subsection,1,axis\_data\_width\_converter,p1}, pagecommand={}]{axis_data_width_converter-v.pdf}
+
+\end{document}

@@ -1,0 +1,87 @@
+<!DOCTYPE HTML>
+
+<!--Converted with LaTeX2HTML 2021.2 (Released July 1, 2021) -->
+<HTML lang="en">
+<HEAD>
+<TITLE>Architecture</TITLE>
+<META NAME="description" CONTENT="Architecture">
+<META NAME="keywords" CONTENT="html">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+<META NAME="viewport" CONTENT="width=device-width, initial-scale=1.0">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2021.2">
+
+<LINK REL="STYLESHEET" HREF="html.css">
+
+<LINK REL="next" HREF="axis_data_width_converter_node8.html">
+<LINK REL="previous" HREF="axis_data_width_converter_node2.html">
+<LINK REL="next" HREF="axis_data_width_converter_node8.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A
+ HREF="axis_data_width_converter_node8.html">
+<IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
+<A
+ HREF="html.html">
+<IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
+<A
+ HREF="axis_data_width_converter_node6.html">
+<IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A> 
+<A ID="tex2html53"
+  HREF="axis_data_width_converter_node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A
+ HREF="axis_data_width_converter_node8.html">Building</A>
+<B> Up:</B> <A
+ HREF="html.html">html</A>
+<B> Previous:</B> <A
+ HREF="axis_data_width_converter_node6.html">In a Project</A>
+ &nbsp; <B>  <A ID="tex2html54"
+  HREF="axis_data_width_converter_node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H1><A ID="SECTION00030000000000000000">
+Architecture</A>
+</H1>
+
+<P>
+The only module is the axis_data_width_converter module. It is listed below.
+
+<P>
+
+<UL>
+<LI><SPAN  CLASS="textbf">axis_data_width_converter </SPAN> Impliment an algorithm to convert BUS data interfaces in even mutlples (see core for documentation).
+</LI>
+</UL>
+
+<P>
+This core only uses a combinatoral method to divide the accumulator. Since all weights are powers of two this is done with a part select based on bit position.
+
+<P>
+The always block has the following steps.
+
+<OL>
+<LI>If there is valid data, sum the new data into the accumulator and remove the top element in the buffer from the accumulator.
+</LI>
+<LI>Insert the new element into the buffer.
+</LI>
+<LI>Shift the buffer to so that old elements at the top of the buffer are shifted out.
+</LI>
+</OL>
+
+<P>
+Please see <A HREF="axis_data_width_converter_node18.html#Module_Documentation"><IMG  ALT="[*]" SRC="crossref.png"></A> for more information.
+
+<P>
+<BR><HR>
+
+</BODY>
+</HTML>

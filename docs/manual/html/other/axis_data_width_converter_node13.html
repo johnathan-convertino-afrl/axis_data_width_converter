@@ -1,0 +1,370 @@
+<!DOCTYPE HTML>
+
+<!--Converted with LaTeX2HTML 2021.2 (Released July 1, 2021) -->
+<HTML lang="en">
+<HEAD>
+<TITLE>fusesoc_info Targets</TITLE>
+<META NAME="description" CONTENT="fusesoc_info Targets">
+<META NAME="keywords" CONTENT="html">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+<META NAME="viewport" CONTENT="width=device-width, initial-scale=1.0">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2021.2">
+
+<LINK REL="STYLESHEET" HREF="html.css">
+
+<LINK REL="previous" HREF="axis_data_width_converter_node12.html">
+<LINK REL="next" HREF="axis_data_width_converter_node14.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A
+ HREF="axis_data_width_converter_node14.html">
+<IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
+<A
+ HREF="axis_data_width_converter_node12.html">
+<IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
+<A
+ HREF="axis_data_width_converter_node12.html">
+<IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A> 
+<A ID="tex2html73"
+  HREF="axis_data_width_converter_node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A
+ HREF="axis_data_width_converter_node14.html">Directory Guide</A>
+<B> Up:</B> <A
+ HREF="axis_data_width_converter_node12.html">Targets</A>
+<B> Previous:</B> <A
+ HREF="axis_data_width_converter_node12.html">Targets</A>
+ &nbsp; <B>  <A ID="tex2html74"
+  HREF="axis_data_width_converter_node1.html">Contents</A></B> 
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H3><A ID="SECTION00043100000000000000">
+fusesoc_info Targets</A>
+</H3>
+
+<UL>
+<LI>default
+	<table width="90%"><tr><td align="right" valign="top"><SPAN CLASS="MATH"><IMG
+ STYLE="height: 0.46ex; vertical-align: -0.12ex; " SRC="axis_data_width_converter_img2.svg"
+ ALT="$\ $"></SPAN></td><td valign="top">&nbsp;Info: Default for IP intergration.
+</LI>
+<LI>src
+</LI>
+<LI>dep
+	</td></tr></table>
+
+</LI>
+<LI>sim
+	<table width="90%"><tr><td align="right" valign="top"><SPAN CLASS="MATH"><IMG
+ STYLE="height: 0.46ex; vertical-align: -0.12ex; " SRC="axis_data_width_converter_img2.svg"
+ ALT="$\ $"></SPAN></td><td valign="top">&nbsp;Info: Test 1:1 conversion.
+</LI>
+<LI>src
+</LI>
+<LI>dep
+</LI>
+<LI>tb
+</LI>
+<LI>dep_tb
+</LI>
+<LI>IN_FILE_NAME
+</LI>
+<LI>OUT_FILE_NAME
+</LI>
+<LI>RAND_READY
+</LI>
+<LI>MASTER_WIDTH
+</LI>
+<LI>SLAVE_WIDTH
+	</td></tr></table>
+
+</LI>
+<LI>sim_reduce
+	<table width="90%"><tr><td align="right" valign="top"><SPAN CLASS="MATH"><IMG
+ STYLE="height: 0.46ex; vertical-align: -0.12ex; " SRC="axis_data_width_converter_img2.svg"
+ ALT="$\ $"></SPAN></td><td valign="top">&nbsp;Info: Test data reduction.
+</LI>
+<LI>src
+</LI>
+<LI>dep
+</LI>
+<LI>tb
+</LI>
+<LI>dep_tb
+</LI>
+<LI>IN_FILE_NAME
+</LI>
+<LI>OUT_FILE_NAME
+</LI>
+<LI>RAND_READY
+</LI>
+<LI>MASTER_WIDTH=2
+</LI>
+<LI>SLAVE_WIDTH=4
+	</td></tr></table>
+
+</LI>
+<LI>sim_rand_data_reduce
+	<table width="90%"><tr><td align="right" valign="top"><SPAN CLASS="MATH"><IMG
+ STYLE="height: 0.46ex; vertical-align: -0.12ex; " SRC="axis_data_width_converter_img2.svg"
+ ALT="$\ $"></SPAN></td><td valign="top">&nbsp;Info: Test data reduction with random data
+</LI>
+<LI>src
+</LI>
+<LI>dep
+</LI>
+<LI>tb
+</LI>
+<LI>dep_tb
+</LI>
+<LI>IN_FILE_NAME=random.bin
+</LI>
+<LI>OUT_FILE_NAME=out_random.bin
+</LI>
+<LI>RAND_READY
+</LI>
+<LI>MASTER_WIDTH=2
+</LI>
+<LI>SLAVE_WIDTH=4
+	</td></tr></table>
+
+</LI>
+<LI>sim_rand_ready_rand_data_reduce
+	<table width="90%"><tr><td align="right" valign="top"><SPAN CLASS="MATH"><IMG
+ STYLE="height: 0.46ex; vertical-align: -0.12ex; " SRC="axis_data_width_converter_img2.svg"
+ ALT="$\ $"></SPAN></td><td valign="top">&nbsp;Info: Test data reduction with random ready and random data.
+</LI>
+<LI>src
+</LI>
+<LI>dep
+</LI>
+<LI>tb
+</LI>
+<LI>dep_tb
+</LI>
+<LI>IN_FILE_NAME=random.bin
+</LI>
+<LI>OUT_FILE_NAME=out_random.bin
+</LI>
+<LI>RAND_READY=1
+</LI>
+<LI>MASTER_WIDTH=2
+</LI>
+<LI>SLAVE_WIDTH=4
+	</td></tr></table>
+
+</LI>
+<LI>sim_8bit_count_data_reduce
+	<table width="90%"><tr><td align="right" valign="top"><SPAN CLASS="MATH"><IMG
+ STYLE="height: 0.46ex; vertical-align: -0.12ex; " SRC="axis_data_width_converter_img2.svg"
+ ALT="$\ $"></SPAN></td><td valign="top">&nbsp;Info: Test data reduction with counter data.
+</LI>
+<LI>src
+</LI>
+<LI>dep
+</LI>
+<LI>tb
+</LI>
+<LI>dep_tb
+</LI>
+<LI>IN_FILE_NAME=8bit_count.bin
+</LI>
+<LI>OUT_FILE_NAME=out_8bit_count.bin
+</LI>
+<LI>RAND_READY
+</LI>
+<LI>MASTER_WIDTH=2
+</LI>
+<LI>SLAVE_WIDTH=4
+	</td></tr></table>
+
+</LI>
+<LI>sim_rand_ready_8bit_count_data_reduce
+	<table width="90%"><tr><td align="right" valign="top"><SPAN CLASS="MATH"><IMG
+ STYLE="height: 0.46ex; vertical-align: -0.12ex; " SRC="axis_data_width_converter_img2.svg"
+ ALT="$\ $"></SPAN></td><td valign="top">&nbsp;Info: Test data reduction with counter data, and random ready.
+</LI>
+<LI>src
+</LI>
+<LI>dep
+</LI>
+<LI>tb
+</LI>
+<LI>dep_tb
+</LI>
+<LI>IN_FILE_NAME=8bit_count.bin
+</LI>
+<LI>OUT_FILE_NAME=out_8bit_count.bin
+</LI>
+<LI>RAND_READY=1
+</LI>
+<LI>MASTER_WIDTH=2
+</LI>
+<LI>SLAVE_WIDTH=4
+	</td></tr></table>
+
+</LI>
+<LI>sim_increase
+	<table width="90%"><tr><td align="right" valign="top"><SPAN CLASS="MATH"><IMG
+ STYLE="height: 0.46ex; vertical-align: -0.12ex; " SRC="axis_data_width_converter_img2.svg"
+ ALT="$\ $"></SPAN></td><td valign="top">&nbsp;Info: Test data increase.
+</LI>
+<LI>src
+</LI>
+<LI>dep
+</LI>
+<LI>tb
+</LI>
+<LI>dep_tb
+</LI>
+<LI>IN_FILE_NAME
+</LI>
+<LI>OUT_FILE_NAME
+</LI>
+<LI>RAND_READY
+</LI>
+<LI>MASTER_WIDTH=4
+</LI>
+<LI>SLAVE_WIDTH=2
+	</td></tr></table>
+
+</LI>
+<LI>sim_rand_data_increase
+	<table width="90%"><tr><td align="right" valign="top"><SPAN CLASS="MATH"><IMG
+ STYLE="height: 0.46ex; vertical-align: -0.12ex; " SRC="axis_data_width_converter_img2.svg"
+ ALT="$\ $"></SPAN></td><td valign="top">&nbsp;Info: Test data increase with random data.
+</LI>
+<LI>src
+</LI>
+<LI>dep
+</LI>
+<LI>tb
+</LI>
+<LI>dep_tb
+</LI>
+<LI>IN_FILE_NAME=random.bin
+</LI>
+<LI>OUT_FILE_NAME=out_random.bin
+</LI>
+<LI>RAND_READY
+</LI>
+<LI>MASTER_WIDTH=4
+</LI>
+<LI>SLAVE_WIDTH=2
+	</td></tr></table>
+
+</LI>
+<LI>sim_rand_ready_rand_data_increase
+	<table width="90%"><tr><td align="right" valign="top"><SPAN CLASS="MATH"><IMG
+ STYLE="height: 0.46ex; vertical-align: -0.12ex; " SRC="axis_data_width_converter_img2.svg"
+ ALT="$\ $"></SPAN></td><td valign="top">&nbsp;Info: Test data increase with random data, and random ready.
+</LI>
+<LI>src
+</LI>
+<LI>dep
+</LI>
+<LI>tb
+</LI>
+<LI>dep_tb
+</LI>
+<LI>IN_FILE_NAME=random.bin
+</LI>
+<LI>OUT_FILE_NAME=out_random.bin
+</LI>
+<LI>RAND_READY=1
+</LI>
+<LI>MASTER_WIDTH=4
+</LI>
+<LI>SLAVE_WIDTH=2
+	</td></tr></table>
+
+</LI>
+<LI>sim_8bit_count_data_increase
+	<table width="90%"><tr><td align="right" valign="top"><SPAN CLASS="MATH"><IMG
+ STYLE="height: 0.46ex; vertical-align: -0.12ex; " SRC="axis_data_width_converter_img2.svg"
+ ALT="$\ $"></SPAN></td><td valign="top">&nbsp;Info: Test data increase with count data.
+</LI>
+<LI>src
+</LI>
+<LI>dep
+</LI>
+<LI>tb
+</LI>
+<LI>dep_tb
+</LI>
+<LI>IN_FILE_NAME=8bit_count.bin
+</LI>
+<LI>OUT_FILE_NAME=out_8bit_count.bin
+</LI>
+<LI>RAND_READY
+</LI>
+<LI>MASTER_WIDTH=4
+</LI>
+<LI>SLAVE_WIDTH=2
+	</td></tr></table>
+
+</LI>
+<LI>sim_rand_ready_8bit_count_data_increase
+	<table width="90%"><tr><td align="right" valign="top"><SPAN CLASS="MATH"><IMG
+ STYLE="height: 0.46ex; vertical-align: -0.12ex; " SRC="axis_data_width_converter_img2.svg"
+ ALT="$\ $"></SPAN></td><td valign="top">&nbsp;Info: Test data increase with count data, and random ready.
+</LI>
+<LI>src
+</LI>
+<LI>dep
+</LI>
+<LI>tb
+</LI>
+<LI>dep_tb
+</LI>
+<LI>IN_FILE_NAME=8bit_count.bin
+</LI>
+<LI>OUT_FILE_NAME=out_8bit_count.bin
+</LI>
+<LI>RAND_READY=1
+</LI>
+<LI>MASTER_WIDTH=4
+</LI>
+<LI>SLAVE_WIDTH=2
+	</td></tr></table>
+</LI>
+</UL>
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A
+ HREF="axis_data_width_converter_node14.html">
+<IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
+<A
+ HREF="axis_data_width_converter_node12.html">
+<IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
+<A
+ HREF="axis_data_width_converter_node12.html">
+<IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A> 
+<A ID="tex2html73"
+  HREF="axis_data_width_converter_node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A
+ HREF="axis_data_width_converter_node14.html">Directory Guide</A>
+<B> Up:</B> <A
+ HREF="axis_data_width_converter_node12.html">Targets</A>
+<B> Previous:</B> <A
+ HREF="axis_data_width_converter_node12.html">Targets</A>
+ &nbsp; <B>  <A ID="tex2html74"
+  HREF="axis_data_width_converter_node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>
