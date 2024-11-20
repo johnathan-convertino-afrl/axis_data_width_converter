@@ -54,18 +54,52 @@ Simply use this core between a sink and source AXIS devices. This will convert f
 The only module is the axis\_data\_width\_converter module. It is listed below.
 
 \begin{itemize}
-  \item \textbf{axis\_data\_width\_converter } Impliment an algorithm to convert BUS data interfaces in even mutlples (see core for documentation).
+  \item \textbf{axis\_data\_width\_converter } Implement an algorithm to convert BUS data interfaces in even multiples (see core for documentation).
 \end{itemize}
 
 \par
-This core only uses a combinatoral method to divide the accumulator. Since all weights are powers of two this is done with a part select based on bit position.
+The data width converter uses a generate block to select between three possible scenarios. First is they are equal, which just assigns the fields to each other.
+The second is slave is smaller then the master. This uses a register build up method by building up data till the correct number of bytes is reached. The final
+method is slave is larger than the master. This works by slicing the incoming data into chunks for the slave.
 
 \par
-The always block has the following steps.
+The slave is smaller than master block has the following steps.
 \begin{enumerate}
-\item If there is valid data, sum the new data into the accumulator and remove the top element in the buffer from the accumulator.
-\item Insert the new element into the buffer.
-\item Shift the buffer to so that old elements at the top of the buffer are shifted out.
+\item Create registers used to buffer data and signals
+\item Generate a backpressure tready signal for the axis input using the current tready master and its previous state.
+\item The output is valid if the register has valid.
+\item Last is set if register has last and the data is valid.
+\item always block processes data in the following manner.
+  \begin{enumerate}
+    \item Once out of reset, check if the output device is ready. If it is clear out the data tlast and valid registers and set the previous tready to 0.
+    \item If the input is valid, and we were previously not ready or are currently ready start processing slave data.
+    \begin{enumerate}
+      \item build up slave data in buffer
+      \item build up last buffer
+      \item increment counter, or decrement if reversed byte order.
+      \item Once counter hits its threshold, reset counter to initial value, and the buffer data is now valid so register for valid is set to active high.
+    \end{enumerate}
+  \end{enumerate}
+\end{enumerate}
+
+\par
+The slave is larger than master block has the following steps.
+\begin{enumerate}
+\item Use a for loop to generate an assignment to take input data and slice it into a wire that is segmented into the size of the output data.
+\item Ready happens when counter hits its count and the proper signals are set. Backpressure is needed since going larger to smaller will take more clock cycles.
+\item For the output, if the register for valid is active high, output the proper signal or data.
+\item always block processes data in the following manner.
+  \begin{enumerate}
+    \item Once out of reset, check if the output device is ready. If it is, register for valid is set to 0 and the previous tready is cleared.
+    \item If the input is valid, and we were previously not ready or are currently ready, and the counter has reach the start count, start processing slave data.
+    \begin{enumerate}
+      \item In an unrolled for loop take the split input data and store it in a buffer.
+      \item increment counter, or decrement if reversed byte order.
+      \item Data is valid, so set it active high
+      \item previous tready is set to active high, since the core has to be ready to take data.
+    \end{enumerate}
+    \item Check the counter, and check if the destination device is ready, if it is, decrement the counter and reassert the valid and previous tready.
+  \end{enumerate}
 \end{enumerate}
 
 Please see \ref{Module Documentation} for more information.

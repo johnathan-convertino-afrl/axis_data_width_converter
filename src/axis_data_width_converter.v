@@ -81,13 +81,13 @@ module axis_data_width_converter #(
   genvar gen_index;
 
   generate
-    //if they are the same... there really isn't a point.
+    // if they are the same... there really isn't a point.
     if(SLAVE_WIDTH == MASTER_WIDTH) begin
       assign m_axis_tdata  = s_axis_tdata;
       assign m_axis_tvalid = s_axis_tvalid;
       assign s_axis_tready = m_axis_tready;
       assign m_axis_tlast  = s_axis_tlast;
-    //slave is smaller, use register build up method. (increase)
+    // slave is smaller, use register build up method. (increase)
     end else if(SLAVE_WIDTH < MASTER_WIDTH) begin
       //buffer
       reg [(SLAVE_WIDTH*8)-1:0]  reg_data_buffer[MASTER_WIDTH/SLAVE_WIDTH-1:0];
@@ -150,7 +150,7 @@ module axis_data_width_converter #(
           end
         end
       end
-    //slave input is larger then master register method (reduce)
+    // slave input is larger then master register method (reduce)
     end else begin
       //buffer
       reg [(MASTER_WIDTH*8)-1:0] reg_data_buffer[SLAVE_WIDTH/MASTER_WIDTH-1:0];

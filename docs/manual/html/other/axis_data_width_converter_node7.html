@@ -58,22 +58,83 @@ The only module is the axis_data_width_converter module. It is listed below.
 <P>
 
 <UL>
-<LI><SPAN  CLASS="textbf">axis_data_width_converter </SPAN> Impliment an algorithm to convert BUS data interfaces in even mutlples (see core for documentation).
+<LI><SPAN  CLASS="textbf">axis_data_width_converter </SPAN> Implement an algorithm to convert BUS data interfaces in even multiples (see core for documentation).
 </LI>
 </UL>
 
 <P>
-This core only uses a combinatoral method to divide the accumulator. Since all weights are powers of two this is done with a part select based on bit position.
+The data width converter uses a generate block to select between three possible scenarios. First is they are equal, which just assigns the fields to each other.
+The second is slave is smaller then the master. This uses a register build up method by building up data till the correct number of bytes is reached. The final
+method is slave is larger than the master. This works by slicing the incoming data into chunks for the slave.
 
 <P>
-The always block has the following steps.
+The slave is smaller than master block has the following steps.
 
 <OL>
-<LI>If there is valid data, sum the new data into the accumulator and remove the top element in the buffer from the accumulator.
+<LI>Create registers used to buffer data and signals
 </LI>
-<LI>Insert the new element into the buffer.
+<LI>Generate a backpressure tready signal for the axis input using the current tready master and its previous state.
 </LI>
-<LI>Shift the buffer to so that old elements at the top of the buffer are shifted out.
+<LI>The output is valid if the register has valid.
+</LI>
+<LI>Last is set if register has last and the data is valid.
+</LI>
+<LI>always block processes data in the following manner.
+  
+<OL>
+<LI>Once out of reset, check if the output device is ready. If it is clear out the data tlast and valid registers and set the previous tready to 0.
+</LI>
+<LI>If the input is valid, and we were previously not ready or are currently ready start processing slave data.
+    
+<OL>
+<LI>build up slave data in buffer
+</LI>
+<LI>build up last buffer
+</LI>
+<LI>increment counter, or decrement if reversed byte order.
+</LI>
+<LI>Once counter hits its threshold, reset counter to initial value, and the buffer data is now valid so register for valid is set to active high.
+    
+</LI>
+</OL>
+</LI>
+</OL>
+</LI>
+</OL>
+
+<P>
+The slave is larger than master block has the following steps.
+
+<OL>
+<LI>Use a for loop to generate an assignment to take input data and slice it into a wire that is segmented into the size of the output data.
+</LI>
+<LI>Ready happens when counter hits its count and the proper signals are set. Backpressure is needed since going larger to smaller will take more clock cycles.
+</LI>
+<LI>For the output, if the register for valid is active high, output the proper signal or data.
+</LI>
+<LI>always block processes data in the following manner.
+  
+<OL>
+<LI>Once out of reset, check if the output device is ready. If it is, register for valid is set to 0 and the previous tready is cleared.
+</LI>
+<LI>If the input is valid, and we were previously not ready or are currently ready, and the counter has reach the start count, start processing slave data.
+    
+<OL>
+<LI>In an unrolled for loop take the split input data and store it in a buffer.
+</LI>
+<LI>increment counter, or decrement if reversed byte order.
+</LI>
+<LI>Data is valid, so set it active high
+</LI>
+<LI>previous tready is set to active high, since the core has to be ready to take data.
+    
+</LI>
+</OL>
+</LI>
+<LI>Check the counter, and check if the destination device is ready, if it is, decrement the counter and reassert the valid and previous tready.
+  
+</LI>
+</OL>
 </LI>
 </OL>
 
@@ -81,7 +142,31 @@ The always block has the following steps.
 Please see <A HREF="axis_data_width_converter_node18.html#Module_Documentation"><IMG  ALT="[*]" SRC="crossref.png"></A> for more information.
 
 <P>
-<BR><HR>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A
+ HREF="axis_data_width_converter_node8.html">
+<IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
+<A
+ HREF="html.html">
+<IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
+<A
+ HREF="axis_data_width_converter_node6.html">
+<IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A> 
+<A ID="tex2html53"
+  HREF="axis_data_width_converter_node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A
+ HREF="axis_data_width_converter_node8.html">Building</A>
+<B> Up:</B> <A
+ HREF="html.html">html</A>
+<B> Previous:</B> <A
+ HREF="axis_data_width_converter_node6.html">In a Project</A>
+ &nbsp; <B>  <A ID="tex2html54"
+  HREF="axis_data_width_converter_node1.html">Contents</A></B> </DIV>
+<!--End of Navigation Panel-->
 
 </BODY>
 </HTML>
