@@ -64,22 +64,24 @@ def main():
 def create_latex_item_list(dict_of_values, target_values, name):
   temp = f"\\subsubsection{{{name}}}\n"
   temp += f"\\begin{{itemize}}\n"
-  for key, stuff in {key:value for key, value in dict_of_values.items() if value.get(target_values)}.items():
-    temp += f"\\item {key}\n"
-    temp += f"\t\\begin{{itemize}}\n"
-    list_temp = ""
-    for sub_key, items in stuff.items():
-      if type(items) is list:
-        for item in items:
-          list_temp += f"\t\item {item}\n"
-      elif sub_key == "file_type":
-        temp += f"\t\item[$\space$] Type: {items}\n"
-      elif sub_key == "description":
-        temp += f"\t\item[$\space$] Info: {items}\n"
+  for key, stuff in dict_of_values.items():
+    filtered_stuff = {k:v for k,v in stuff.items() if k in target_values}
+    if(filtered_stuff):
+      temp += f"\\item {key}\n"
+      temp += f"\t\\begin{{itemize}}\n"
+      list_temp = ""
+      for sub_key, items in filtered_stuff.items():
+        if type(items) is list:
+          for item in items:
+            list_temp += f"\t\item {item}\n"
+        elif sub_key == "file_type":
+          temp += f"\t\item[$\space$] Type: {items}\n"
+        elif sub_key == "description":
+          temp += f"\t\item[$\space$] Info: {items}\n"
 
-    temp += list_temp
+      temp += list_temp
 
-    temp += f"\t\end{{itemize}}\n"
+      temp += f"\t\end{{itemize}}\n"
 
   temp += f"\end{{itemize}}\n"
 
