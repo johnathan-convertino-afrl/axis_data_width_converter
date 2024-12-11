@@ -31,17 +31,17 @@
 <A
  HREF="axis_data_width_converter_node16.html">
 <IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A> 
-<A ID="tex2html83"
+<A ID="tex2html89"
   HREF="axis_data_width_converter_node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALT="contents" SRC="contents.png"></A>  
 <BR>
 <B> Next:</B> <A
- HREF="axis_data_width_converter_node18.html">Module Documentation</A>
+ HREF="axis_data_width_converter_node18.html">Code Documentation</A>
 <B> Up:</B> <A
  HREF="axis_data_width_converter_node15.html">Simulation</A>
 <B> Previous:</B> <A
  HREF="axis_data_width_converter_node16.html">iverilog</A>
- &nbsp; <B>  <A ID="tex2html84"
+ &nbsp; <B>  <A ID="tex2html90"
   HREF="axis_data_width_converter_node1.html">Contents</A></B> 
 <BR>
 <BR></DIV>
@@ -52,9 +52,30 @@ cocotb</A>
 </H2>
 
 <P>
-Future simulations will use cocotb. This feature is not yet implemented.
+To use the cocotb tests you must install the following python libraries.
+<TABLE FRAME="VOID" CELLPADDING="4"><TR><TD>
+<PRE>
+  $ pip install cocotb
+  $ pip install cocotbext-axi
+</PRE>
+</TD></TR></TABLE>
 
 <P>
+Then you must use the cocotb sim target. In this case it is sim_cocotb. This target can be run with various bus and fifo parameters.
+<TABLE FRAME="VOID" CELLPADDING="4"><TR><TD>
+<PRE>
+  $ fusesoc run --target sim_cocotb AFRL:buffer:axis_fifo:1.0.0 --SLAVE_WIDTH=8 --MASTER_WIDTH=32
+</PRE>
+</TD></TR></TABLE>
+
+<P>
+The following is an example command to run through various parameters without typing them one by one.
+<TABLE FRAME="VOID" CELLPADDING="4"><TR><TD>
+<PRE>
+  $ for i in {1..32}; do sleep 5; export RY=$(((RANDOM*2)%32)); fusesoc run --target sim_cocotb AFRL:buffer:axis_fifo:1.0.0 --SLAVE_WIDTH=$i --MASTER_WIDTH=$RY; echo "SLAVE WIDTH:" $i "MASTER WIDTH:" $RY; done
+
+</PRE>
+</TD></TR></TABLE>
 
 <P>
 <BR><HR>

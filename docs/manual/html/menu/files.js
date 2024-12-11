@@ -1,1 +1,1 @@
-﻿NDMenu.OnSectionLoaded("files.js",[[1,"axis_data_width_converter.v"]]);
+﻿NDMenu.OnSectionLoaded("files.js",[[2,"axis_data_width_converter","File:",[[1,"axis_data_width_converter.v"]]],[2,"axis_data_width_converter_test_bench","File2:",[[1,"tb_axis.v"],[1,"tb_cocotb.py"],[1,"tb_cocotb.v"]]]]);

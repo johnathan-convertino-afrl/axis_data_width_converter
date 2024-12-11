@@ -1,8 +1,8 @@
 SRCDIR=src
 
 HTML_DIR=html
-ND_HTML_FILES=$(wildcard $(HTML_DIR)/files/*.html)
-ND_PDF=$(notdir $(ND_HTML_FILES:.html=.pdf))
+ND_HTML_FILES=$(wildcard $(HTML_DIR)/files*/*.html)
+ND_PDF=$(patsubst $(HTML_DIR)/%,%,$(ND_HTML_FILES:.html=.pdf))
 
 LAT_COM_SRC=$(SRCDIR)/common.tex
 LAT_COM_AUX=$(LAT_COM_SRC:.tex=.aux)
@@ -20,8 +20,8 @@ OUT=$(LAT_PDF_PDF:.pdf=.out)
 all: $(ND_PDF) $(LAT_PDF_PDF)
 
 #--disable-smart-shrinking
-%.pdf: $(HTML_DIR)/files/%.html
-	wkhtmltopdf --page-size letter -B 38 -L 38 -R 38 -T 38 --no-background --enable-local-file-access $^ $@
+%.pdf:
+	wkhtmltopdf --page-size letter -B 38 -L 38 -R 38 -T 38 --no-background --enable-local-file-access $(HTML_DIR)/$(basename $@).html $(patsubst %/,%,$(dir $@))_$(notdir $@)
 
 $(LAT_PDF_PDF): $(LAT_PDF_SRC) $(LAT_COM_SRC)
 	pdflatex -jobname $(basename $@) -shell-escape -interaction=batchmode $<
