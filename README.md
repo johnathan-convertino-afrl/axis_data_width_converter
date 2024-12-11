@@ -74,3 +74,4 @@
   - sim_rand_ready_rand_data_increase
   - sim_8bit_count_data_increase
   - sim_rand_ready_8bit_count_data_increase
+  - sim_cocotb

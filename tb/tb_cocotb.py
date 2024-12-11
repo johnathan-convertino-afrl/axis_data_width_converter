@@ -58,40 +58,42 @@ def random_bool():
 # Parameters:
 #   dut - Device under test passed from cocotb test function
 def start_clock(dut):
-  cocotb.start_soon(Clock(dut.m_axis_aclk, 2, units="ns").start())
-  cocotb.start_soon(Clock(dut.s_axis_aclk, 2, units="ns").start())
-  cocotb.start_soon(Clock(dut.data_count_aclk, 2, units="ns").start())
+  cocotb.start_soon(Clock(dut.aclk, 2, units="ns").start())
 
 # Function: reset_dut
 # Cocotb coroutine for resets, used with await to make sure system is reset.
+#
+# Parameters:
+#   dut - Device under test passed from cocotb.
 async def reset_dut(dut):
-  dut.m_axis_arstn.value = 0
-  dut.s_axis_arstn.value = 0
-  dut.data_count_arstn.value = 0
+  dut.arstn.value = 0
   await Timer(5, units="ns")
-  dut.m_axis_arstn.value = 1
-  dut.s_axis_arstn.value = 1
-  dut.data_count_arstn.value = 1
+  dut.arstn.value = 1
 
-# Function: single_word
-# Coroutine that is identified as a test routine. This routine tests for writing a single word, and
-# then reading a single word.
+# Function: conversion_test
+# Coroutine that is identified as a test routine. This routine tests for conversion based on current input to output
+# size conversion.
 #
 # Parameters:
 #   dut - Device under test passed from cocotb.
 @cocotb.test()
-async def single_word(dut):
+async def conversion_test(dut):
+
+    if dut.SLAVE_WIDTH.value > dut.MASTER_WIDTH.value:
+      assert dut.SLAVE_WIDTH.value%dut.MASTER_WIDTH.value == 0, "Slave must be evenly divisable by the master"
+    elif dut.SLAVE_WIDTH.value < dut.MASTER_WIDTH.value:
+      assert dut.MASTER_WIDTH.value%dut.SLAVE_WIDTH.value == 0, "Master must be evenly divisable by the slave"
 
     start_clock(dut)
 
-    axis_source = AxiStreamSource(AxiStreamBus.from_prefix(dut, "s_axis"), dut.s_axis_aclk, dut.s_axis_arstn, False)
-    axis_sink = AxiStreamSink(AxiStreamBus.from_prefix(dut, "m_axis"), dut.m_axis_aclk, dut.m_axis_arstn, False)
+    axis_source = AxiStreamSource(AxiStreamBus.from_prefix(dut, "s_axis"), dut.aclk, dut.arstn, False)
+    axis_sink = AxiStreamSink(AxiStreamBus.from_prefix(dut, "m_axis"), dut.aclk, dut.arstn, False)
 
     await reset_dut(dut)
 
     for x in range(0, 256):
-        data = x.to_bytes(length = 1, byteorder='little') * dut.BUS_WIDTH.value
-        tx_frame = AxiStreamFrame(data, tdest=x%(2**dut.s_axis_tdest.value.n_bits), tuser=(x-255)%(2**dut.s_axis_tuser.value.n_bits), tx_complete=Event())
+        data = x.to_bytes(length = 1, byteorder='little') * (dut.SLAVE_WIDTH.value if dut.SLAVE_WIDTH.value > dut.MASTER_WIDTH.value else dut.MASTER_WIDTH.value)
+        tx_frame = AxiStreamFrame(data, tx_complete=Event())
 
         await axis_source.send(tx_frame)
         await tx_frame.tx_complete.wait()
@@ -103,67 +105,28 @@ async def single_word(dut):
         assert dut.s_axis_tready.value.integer == 1, "tready is not 1!"
 
         assert rx_frame.tdata == tx_frame.tdata, "Input tdata does not match output"
-        assert rx_frame.tdest == tx_frame.tdest, "Input tdest does not match output"
-        assert rx_frame.tuser == tx_frame.tuser, "Input tuser does not match output"
 
-    await RisingEdge(dut.s_axis_aclk)
+    await RisingEdge(dut.aclk)
 
     assert dut.s_axis_tready.value[0] == 1, "tready is not 1!"
 
-# Function: full_empty
-# Coroutine that is identified as a test routine. This routine tests for writing till the fifo is full,
-# Then reading from the full FIFO.
-#
-# Parameters:
-#   dut - Device under test passed from cocotb.
-@cocotb.test()
-async def full_empty(dut):
-
-    start_clock(dut)
-
-    axis_source = AxiStreamSource(AxiStreamBus.from_prefix(dut, "s_axis"), dut.s_axis_aclk, dut.s_axis_arstn, False)
-    axis_sink = AxiStreamSink(AxiStreamBus.from_prefix(dut, "m_axis"), dut.m_axis_aclk, dut.m_axis_arstn, False)
-
-    await reset_dut(dut)
-
-    for x in range(0, 256):
-        axis_sink.pause = True
-
-        data = x.to_bytes(length = 1, byteorder='little') * dut.BUS_WIDTH.value * dut.FIFO_DEPTH.value
-        tx_frame = AxiStreamFrame(data, tdest=x%(2**dut.s_axis_tdest.value.n_bits), tuser=(x-255)%(2**dut.s_axis_tuser.value.n_bits), tx_complete=Event())
-
-        await axis_source.send(tx_frame)
-        await tx_frame.tx_complete.wait()
-
-        await Timer(10, units="ns")
-
-        assert dut.data_count == dut.FIFO_DEPTH.value, "FIFO and DATA COUNT mismatch"
-
-        assert dut.s_axis_tready.value.integer == 0, "tready is not 0!"
-
-        axis_sink.pause = False
-
-        rx_frame = await axis_sink.recv()
-        assert rx_frame.tdata == tx_frame.tdata, "Input tdata does not match output"
-        assert rx_frame.tdest == tx_frame.tdest, "Input tdest does not match output"
-        assert rx_frame.tuser == tx_frame.tuser, "Input tuser does not match output"
-
-    await RisingEdge(dut.s_axis_aclk)
-
-    assert dut.s_axis_tready.value.integer == 1, "tready is not 1!"
-
-# Function: random_ready
+# Function: conversion_test_random_ready
 # Coroutine that is identified as a test routine. This routine tests for randomized ready from the sink.
 #
 # Parameters:
 #   dut - Device under test passed from cocotb.
 @cocotb.test()
-async def random_ready(dut):
+async def conversion_test_random_ready(dut):
+
+    if dut.SLAVE_WIDTH.value > dut.MASTER_WIDTH.value:
+      assert dut.SLAVE_WIDTH.value%dut.MASTER_WIDTH.value == 0, "Slave must be evenly divisable by the master"
+    elif dut.SLAVE_WIDTH.value < dut.MASTER_WIDTH.value:
+      assert dut.MASTER_WIDTH.value%dut.SLAVE_WIDTH.value == 0, "Master must be evenly divisable by the slave"
 
     start_clock(dut)
 
-    axis_source = AxiStreamSource(AxiStreamBus.from_prefix(dut, "s_axis"), dut.s_axis_aclk, dut.s_axis_arstn, False)
-    axis_sink = AxiStreamSink(AxiStreamBus.from_prefix(dut, "m_axis"), dut.m_axis_aclk, dut.m_axis_arstn, False)
+    axis_source = AxiStreamSource(AxiStreamBus.from_prefix(dut, "s_axis"), dut.aclk, dut.arstn, False)
+    axis_sink = AxiStreamSink(AxiStreamBus.from_prefix(dut, "m_axis"), dut.aclk, dut.arstn, False)
 
     axis_sink.set_pause_generator(random_bool())
 
@@ -172,19 +135,19 @@ async def random_ready(dut):
     data = bytearray()
 
     for x in range(1024):
-      data += random.randrange(256).to_bytes(length = 1, byteorder='little') * dut.BUS_WIDTH.value
+      data += random.randrange(256).to_bytes(length = 1, byteorder='little') * (dut.SLAVE_WIDTH.value if dut.SLAVE_WIDTH.value > dut.MASTER_WIDTH.value else dut.MASTER_WIDTH.value)
 
-    tx_frame = AxiStreamFrame(data, tdest=data[0]%(2**dut.s_axis_tdest.value.n_bits), tuser=data[dut.BUS_WIDTH.value]%(2**dut.s_axis_tuser.value.n_bits), tx_complete=Event())
+    tx_frame = AxiStreamFrame(data, tx_complete=Event())
 
     await axis_source.send(tx_frame)
     await tx_frame.tx_complete.wait()
 
     rx_frame = await axis_sink.recv()
     assert rx_frame.tdata == tx_frame.tdata, "Input tdata does not match output"
-    assert rx_frame.tdest == tx_frame.tdest, "Input tdest does not match output"
-    assert rx_frame.tuser == tx_frame.tuser, "Input tuser does not match output"
 
-    await RisingEdge(dut.s_axis_aclk)
+    axis_sink.clear_pause_generator()
+
+    await RisingEdge(dut.aclk)
 
     assert dut.s_axis_tready.value.integer == 1, "tready is not 1!"
 
@@ -201,9 +164,7 @@ async def in_reset(dut):
 
     dut.m_axis_tready.value = 0
 
-    dut.m_axis_arstn.value = 0
-
-    dut.s_axis_arstn.value = 0
+    dut.arstn.value = 0
 
     await Timer(10, units="ns")
 
@@ -220,13 +181,9 @@ async def no_clock(dut):
 
     dut.m_axis_tready.value = 0
 
-    dut.m_axis_arstn.value = 0
+    dut.arstn.value = 0
 
-    dut.m_axis_aclk.value = 0
-
-    dut.s_axis_arstn.value = 0
-
-    dut.s_axis_aclk.value = 0
+    dut.aclk.value = 0
 
     await Timer(5, units="ns")
 

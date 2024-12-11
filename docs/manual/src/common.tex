@@ -163,12 +163,12 @@ To use the cocotb tests you must install the following python libraries.
 
 Then you must use the cocotb sim target. In this case it is sim\_cocotb. This target can be run with various bus and fifo parameters.
 \begin{lstlisting}[language=bash]
-  $ fusesoc run --target sim_cocotb AFRL:buffer:axis_fifo:1.0.0 --SLAVE_WIDTH=8 --MASTER_WIDTH=32
+  $ fusesoc run --target sim_cocotb AFRL:streaming_converter:axis_data_width_converter:1.0.1 --SLAVE_WIDTH=8 --MASTER_WIDTH=32
 \end{lstlisting}
 
 The following is an example command to run through various parameters without typing them one by one.
 \begin{lstlisting}[language=bash]
-  $ for i in {1..32}; do sleep 5; export RY=$(((RANDOM*2)%32)); fusesoc run --target sim_cocotb AFRL:buffer:axis_fifo:1.0.0 --SLAVE_WIDTH=$i --MASTER_WIDTH=$RY; echo "SLAVE WIDTH:" $i "MASTER WIDTH:" $RY; done
+  $ for i in {1..32}; do sleep 5; export RY=$(((RANDOM*2)%32)); fusesoc run --target sim_cocotb AFRL:streaming_converter:axis_data_width_converter:1.0.1 --SLAVE_WIDTH=$i --MASTER_WIDTH=$RY; echo "SLAVE WIDTH:" $i "MASTER WIDTH:" $RY; done
 \end{lstlisting}
 \newpage
 

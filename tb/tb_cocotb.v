@@ -92,8 +92,8 @@ module tb_cocotb #(
    * Device under test, axis_data_width_converter
    */
   axis_data_width_converter #(
-    .MASTER_WIDTH(MBUS_WIDTH),
-    .SLAVE_WIDTH(SBUS_WIDTH)
+    .MASTER_WIDTH(MASTER_WIDTH),
+    .SLAVE_WIDTH(SLAVE_WIDTH)
   ) dut (
     .aclk(aclk),
     .arstn(arstn),

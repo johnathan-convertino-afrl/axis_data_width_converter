@@ -12,7 +12,12 @@ filesets:
   tb:
     files:
       - tb/tb_axis.v : {file_type: verilogSource}
-    
+
+  tb_cocotb:
+    files:
+      - tb/tb_cocotb.py : {file_type : user, copyto : .}
+      - tb/tb_cocotb.v : { file_type: verilogSource }
+
   dep:
     depend:
       - AFRL:utility:helper:1.0.0
@@ -143,6 +148,20 @@ targets:
       - MASTER_WIDTH=4
       - SLAVE_WIDTH=2
     
+  sim_cocotb:
+    <<: *default
+    description: Cocotb unit tests
+    flow: sim
+    flow_options:
+      tool: icarus
+      cocotb_module: tb_cocotb
+      timescale: 1ns/1ns
+      vcs_options: [-timescale=1ns/1ns]
+    filesets_append: [tb_cocotb]
+    toplevel: tb_cocotb
+    parameters:
+      - MASTER_WIDTH
+      - SLAVE_WIDTH
     
 parameters:
   RAND_READY:
