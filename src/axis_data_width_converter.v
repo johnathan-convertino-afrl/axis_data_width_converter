@@ -82,15 +82,15 @@ module axis_data_width_converter #(
 
   generate
     // if they are the same... there really isn't a point.
-    if(SLAVE_WIDTH == MASTER_WIDTH) begin
+    if(SLAVE_WIDTH == MASTER_WIDTH) begin : gen_EQUAL_WIDTH
       assign m_axis_tdata  = s_axis_tdata;
       assign m_axis_tvalid = s_axis_tvalid;
       assign s_axis_tready = m_axis_tready;
       assign m_axis_tlast  = s_axis_tlast;
     // slave is smaller, use register build up method. (increase)
-    end else if(SLAVE_WIDTH < MASTER_WIDTH) begin
+    end else if(SLAVE_WIDTH < MASTER_WIDTH) begin : gen_SLAVE_SMALL
       //buffer
-      reg [(SLAVE_WIDTH*8)-1:0]  reg_data_buffer[MASTER_WIDTH/SLAVE_WIDTH-1:0];
+      reg [(SLAVE_WIDTH*8)-1:0]  reg_data_buffer[MASTER_WIDTH/SLAVE_WIDTH];
       reg reg_data_valid;
       reg reg_data_last;
       //counter
@@ -108,7 +108,7 @@ module axis_data_width_converter #(
       assign m_axis_tlast = reg_data_last & reg_data_valid;
       
       //generate wires to connect reg_data_buffer to tdata out. reg_valid selects buffer if data is valid.
-      for(gen_index = 0; gen_index < (MASTER_WIDTH/SLAVE_WIDTH); gen_index = gen_index + 1) begin
+      for(gen_index = 0; gen_index < (MASTER_WIDTH/SLAVE_WIDTH); gen_index = gen_index + 1) begin : gen_DATA_ROUTING
         assign m_axis_tdata[(8*SLAVE_WIDTH*(gen_index+1))-1:8*SLAVE_WIDTH*gen_index] = (reg_data_valid == 1'b1 ? reg_data_buffer[gen_index] : 0);
       end
       
@@ -151,11 +151,11 @@ module axis_data_width_converter #(
         end
       end
     // slave input is larger then master register method (reduce)
-    end else begin
+    end else begin : gen_SLAVE_LARGE
       //buffer
-      reg [(MASTER_WIDTH*8)-1:0] reg_data_buffer[SLAVE_WIDTH/MASTER_WIDTH-1:0];
+      reg [(MASTER_WIDTH*8)-1:0] reg_data_buffer[SLAVE_WIDTH/MASTER_WIDTH];
       reg                        reg_data_valid;
-      reg                        reg_data_last[SLAVE_WIDTH/MASTER_WIDTH-1:0];
+      reg                        reg_data_last[SLAVE_WIDTH/MASTER_WIDTH];
       reg [(MASTER_WIDTH*8)-1:0] reg_m_axis_tdata;
       
       //counter
@@ -164,13 +164,13 @@ module axis_data_width_converter #(
       reg [clogb2(SLAVE_WIDTH):0] index;
       
       //split s_axis
-      wire [(MASTER_WIDTH*8)-1:0] split_s_axis_tdata[SLAVE_WIDTH/MASTER_WIDTH-1:0];
+      wire [(MASTER_WIDTH*8)-1:0] split_s_axis_tdata[SLAVE_WIDTH/MASTER_WIDTH];
       
       //m_axis_tready
       reg p_m_axis_tready;
       
       //split slave tdata into pieces the size of master tdata
-      for(gen_index = 0; gen_index < (SLAVE_WIDTH/MASTER_WIDTH); gen_index = gen_index + 1) begin
+      for(gen_index = 0; gen_index < (SLAVE_WIDTH/MASTER_WIDTH); gen_index = gen_index + 1) begin : gen_SLAVE_SPLIT
         assign split_s_axis_tdata[gen_index] = s_axis_tdata[(8*MASTER_WIDTH*(gen_index+1))-1:8*MASTER_WIDTH*gen_index] ;
       end
       

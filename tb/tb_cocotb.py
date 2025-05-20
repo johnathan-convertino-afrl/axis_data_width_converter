@@ -147,6 +147,8 @@ async def conversion_test_random_ready(dut):
 
     axis_sink.clear_pause_generator()
 
+    axis_sink.pause = False
+
     await RisingEdge(dut.aclk)
 
     assert dut.s_axis_tready.value.integer == 1, "tready is not 1!"

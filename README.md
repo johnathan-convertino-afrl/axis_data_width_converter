@@ -28,17 +28,6 @@
   - [axis_data_width_converter.pdf](docs/manual/axis_data_width_converter.pdf)
   - [github page](https://johnathan-convertino-afrl.github.io/axis_data_width_converter/)
 
-### DEPENDENCIES
-#### Build
-
-  - AFRL:utility:helper:1.0.0
-
-#### Simulation
-
-  - AFRL:simulation:axis_stimulator
-  - AFRL:simulation:clock_stimulator
-  - AFRL:utility:sim_helper
-
 ### PARAMETERS
 
 * SLAVE_WIDTH  : DEFAULT = 1 : Slave width in bytes.
@@ -53,6 +42,7 @@
 #### TB
 
 * tb_axis.v
+* tb_cocotb
   
 ### FUSESOC
 
@@ -63,6 +53,7 @@
 
 * RUN WITH: (fusesoc run --target=sim VENDER:CORE:NAME:VERSION)
   - default (for IP integration builds)
+  - lint
   - sim
   - sim_reduce
   - sim_rand_data_reduce

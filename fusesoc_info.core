@@ -32,7 +32,17 @@ targets:
   default: &default
     description: Default for IP intergration.
     filesets: [src, dep]
-  
+
+  lint:
+    description: Lint with Verible
+    filesets: [src]
+    toplevel: axis_data_width_converter
+    default_tool: veriblelint
+    tools:
+      veriblelint:
+        rules:
+         - "-explicit-parameter-storage-type,-parameter-name-style,-line-length,-no-trailing-spaces"
+
   sim: &sim
     <<: *default
     description: Test 1:1 conversion.

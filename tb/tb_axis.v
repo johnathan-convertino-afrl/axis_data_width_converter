@@ -36,7 +36,7 @@
 /*
  * Module: tb_axis
  *
- * Test bench for axis_fifo. This will run a file through the system
+ * Test bench for axis_data_width_converter. This will run a file through the system
  * and write its output. These can then be compared to check for errors.
  * If the files are identical, no errors. A FST file will be written.
  *
