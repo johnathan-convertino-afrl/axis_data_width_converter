@@ -1,0 +1,25 @@
+name: Lint Verilog Source
+
+on:
+  push:
+    paths:
+      - src/**
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pip
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.3'
+      - name: Install fusesoc
+        run: pip install --user fusesoc
+      - name: Download verible
+        run: wget -O verible.tar.gz https://github.com/chipsalliance/verible/releases/download/v0.0-3997-gd6924079/verible-v0.0-3997-gd6924079-linux-static-x86_64.tar.gz
+      - name: Extract verible
+        run: mkdir -p verible && tar -xzf verible.tar.gz -C verible --strip-components=1
+      - name: Run fusesoc lint target
+        run: bash ./.github/scripts/run_fusesoc_lint.sh

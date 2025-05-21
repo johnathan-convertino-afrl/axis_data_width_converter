@@ -56,6 +56,7 @@
  *   s_axis_tvalid  - When set active high the input data is valid
  *   s_axis_tready  - When active high the device is ready for input data.
  *   s_axis_tlast   - Is this the last word in the stream (active high).
+ *
  */
 module axis_data_width_converter #(
     parameter SLAVE_WIDTH   = 1,

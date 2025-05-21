@@ -5,14 +5,19 @@
 
 ---
 
-   author: Jay Convertino   
+  author: Jay Convertino   
+  
+  date: 2023.02.01  
+  
+  details: Simple data width converter for axis devices. Data widths must divide evenly.  
+  
+  license: MIT   
    
-   date: 2023.02.01  
-   
-   details: Simple data width converter for axis devices. Data widths must divide evenly.  
-   
-   license: MIT   
-   
+  Actions:  
+
+  [![Lint Status](../../actions/workflows/lint.yml/badge.svg)](../../actions)  
+  [![Manual Status](../../actions/workflows/manual.yml/badge.svg)](../../actions)  
+  
 ---
 
 ### Version

@@ -1,0 +1,16 @@
+name: Check For Manual
+
+on:
+  push:
+    paths:
+      - docs/**
+
+jobs:
+  manual:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Check file existence"
+        uses: andstor/file-existence-action@v3
+        with:
+          files: "docs/manual/*.pdf, docs/manual/html/index.html"
