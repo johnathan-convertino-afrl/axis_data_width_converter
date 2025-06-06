@@ -91,7 +91,7 @@ module axis_data_width_converter #(
     // slave is smaller, use register build up method. (increase)
     end else if(SLAVE_WIDTH < MASTER_WIDTH) begin : gen_SLAVE_SMALL
       //buffer
-      reg [(SLAVE_WIDTH*8)-1:0]  reg_data_buffer[MASTER_WIDTH/SLAVE_WIDTH];
+      reg [(SLAVE_WIDTH*8)-1:0]  reg_data_buffer[MASTER_WIDTH/SLAVE_WIDTH-1:0];
       reg reg_data_valid;
       reg reg_data_last;
       //counter
@@ -154,9 +154,9 @@ module axis_data_width_converter #(
     // slave input is larger then master register method (reduce)
     end else begin : gen_SLAVE_LARGE
       //buffer
-      reg [(MASTER_WIDTH*8)-1:0] reg_data_buffer[SLAVE_WIDTH/MASTER_WIDTH];
+      reg [(MASTER_WIDTH*8)-1:0] reg_data_buffer[SLAVE_WIDTH/MASTER_WIDTH-1:0];
       reg                        reg_data_valid;
-      reg                        reg_data_last[SLAVE_WIDTH/MASTER_WIDTH];
+      reg                        reg_data_last[SLAVE_WIDTH/MASTER_WIDTH-1:0];
       reg [(MASTER_WIDTH*8)-1:0] reg_m_axis_tdata;
       
       //counter
@@ -165,7 +165,7 @@ module axis_data_width_converter #(
       reg [clogb2(SLAVE_WIDTH):0] index;
       
       //split s_axis
-      wire [(MASTER_WIDTH*8)-1:0] split_s_axis_tdata[SLAVE_WIDTH/MASTER_WIDTH];
+      wire [(MASTER_WIDTH*8)-1:0] split_s_axis_tdata[SLAVE_WIDTH/MASTER_WIDTH-1:0];
       
       //m_axis_tready
       reg p_m_axis_tready;

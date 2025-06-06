@@ -41,7 +41,7 @@ targets:
     tools:
       veriblelint:
         rules:
-         - "-explicit-parameter-storage-type,-parameter-name-style,-line-length,-no-trailing-spaces"
+         - "-explicit-parameter-storage-type,-parameter-name-style,-line-length,-no-trailing-spaces,-unpacked-dimensions-range-ordering"
 
   sim: &sim
     <<: *default
