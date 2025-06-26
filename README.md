@@ -1,5 +1,6 @@
 # AXIS DATA WIDTH CONVERTER
 ### Simple data width converted for ratios that divide into one another.
+---
 
 ![image](docs/manual/img/AFRL.png)
 
