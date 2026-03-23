@@ -31,7 +31,9 @@
 //
 //******************************************************************************
 
-`timescale 1ns/100ps
+`resetall
+`timescale 1 ns/100 ps
+`default_nettype none
 
 /*
  * Module: axis_data_width_converter
@@ -42,7 +44,6 @@
  *
  *   SLAVE_WIDTH    - Width of the slave input bus in bytes
  *   MASTER_WIDTH   - Width of the master output bus in bytes
- *   REVERSE        - Change byte order
  *
  * Ports:
  *
@@ -60,174 +61,244 @@
  */
 module axis_data_width_converter #(
     parameter SLAVE_WIDTH   = 1,
-    parameter MASTER_WIDTH  = 1,
-    parameter REVERSE = 0
+    parameter MASTER_WIDTH  = 1
   )
   (
-    input                         aclk,
-    input                         arstn,
-    output [(MASTER_WIDTH*8)-1:0] m_axis_tdata,
-    output                        m_axis_tvalid,
-    input                         m_axis_tready,
-    output                        m_axis_tlast,
-    input  [(SLAVE_WIDTH*8)-1:0]  s_axis_tdata,
-    input                         s_axis_tvalid,
-    output                        s_axis_tready,
-    input                         s_axis_tlast
+    input  wire                        aclk,
+    input  wire                        arstn,
+    output wire [(MASTER_WIDTH*8)-1:0] m_axis_tdata,
+    output wire [MASTER_WIDTH-1:0]     m_axis_tkeep,
+    output wire                        m_axis_tvalid,
+    input  wire                        m_axis_tready,
+    output wire                        m_axis_tlast,
+    input  wire [(SLAVE_WIDTH*8)-1:0]  s_axis_tdata,
+    input  wire [SLAVE_WIDTH-1:0]      s_axis_tkeep,
+    input  wire                        s_axis_tvalid,
+    output wire                        s_axis_tready,
+    input  wire                        s_axis_tlast
   );
   
   `include "util_helper_math.vh"
   
-  //genvars
-  genvar gen_index;
+  // Group: States
+  // Core has 4 states, that includes an error state.
+  //
+  //  <READY>   - d1
+  //  <FULL>    - d2
+  //  <EMPTY>   - d3
+  //  <ERROR>   - d0
 
+  // State: READY
+  // In this state core can register data into the FIFO.
+  localparam READY  = 2'd1;
+  // State: FULL
+  // In this state core is FULL and can't accept more data.
+  localparam FULL   = 2'd2;
+  // State: EMPTY
+  // In this state core is EMPTY and has no valid data.
+  localparam EMPTY  = 2'd3;
+  // State: ERROR
+  // Should never be reached, state machine is in a bad state.
+  localparam ERROR  = 2'd0;
+  
+  localparam RAM_DEPTH_POW = clogb2(MASTER_WIDTH*SLAVE_WIDTH);
+  
+  localparam RAM_DEPTH = 2**RAM_DEPTH_POW;
+  
+  
   generate
-    // if they are the same... there really isn't a point.
     if(SLAVE_WIDTH == MASTER_WIDTH) begin : gen_EQUAL_WIDTH
       assign m_axis_tdata  = s_axis_tdata;
       assign m_axis_tvalid = s_axis_tvalid;
       assign s_axis_tready = m_axis_tready;
       assign m_axis_tlast  = s_axis_tlast;
-    // slave is smaller, use register build up method. (increase)
-    end else if(SLAVE_WIDTH < MASTER_WIDTH) begin : gen_SLAVE_SMALL
-      //buffer
-      reg [(SLAVE_WIDTH*8)-1:0]  reg_data_buffer[MASTER_WIDTH/SLAVE_WIDTH-1:0];
-      reg reg_data_valid;
-      reg reg_data_last;
-      //counter
-      reg [clogb2(MASTER_WIDTH):0] counter;
-      //index
-      reg [clogb2(MASTER_WIDTH):0] index;
+      assign m_axis_tkeep  = s_axis_tkeep;
+    end else begin : gen_UNEQUAL_WIDTH
+      integer index = 0;
+      // used to concatenated transistion signals
+      // ???
+      wire  w_full_check;
+      // ???
+      wire  w_empty_check;
+      // ???
+      wire  w_get_data;
+
+      // state register
+      reg   [ 1:0] r_state;
       
-      reg p_m_axis_tready;
+      // FIFO reg
+      reg [RAM_DEPTH*8-1:0] r_fifo_tdata;
+      reg [RAM_DEPTH/8-1:0] r_fifo_tlast;
+      reg [RAM_DEPTH-1:0]   r_fifo_tkeep;
       
-      //when ready lets let the component feeding us know.
-      assign s_axis_tready  = (m_axis_tready | ~p_m_axis_tready) & arstn;
-      //send out a reg valid to match reg data
-      assign m_axis_tvalid  = reg_data_valid;
-      //send out a reg tlast to match reg data
-      assign m_axis_tlast = reg_data_last & reg_data_valid;
+      // counter, in bytes
+      reg [RAM_DEPTH_POW-1:0] r_count;
       
-      //generate wires to connect reg_data_buffer to tdata out. reg_valid selects buffer if data is valid.
-      for(gen_index = 0; gen_index < (MASTER_WIDTH/SLAVE_WIDTH); gen_index = gen_index + 1) begin : gen_DATA_ROUTING
-        assign m_axis_tdata[(8*SLAVE_WIDTH*(gen_index+1))-1:8*SLAVE_WIDTH*gen_index] = (reg_data_valid == 1'b1 ? reg_data_buffer[gen_index] : 0);
-      end
+      reg r_ready;
       
-      //process data
-      always @(posedge aclk) begin
-        //clear all
-        if(arstn == 1'b0) begin
-          for(index = 0; index < (MASTER_WIDTH/SLAVE_WIDTH); index = index + 1) begin
-            reg_data_buffer[index] <= 0;
-          end
-          reg_data_valid    <= 0;
-          reg_data_last     <= 0;
-          counter           <= (REVERSE == 0 ? 0 : (MASTER_WIDTH/SLAVE_WIDTH)-1);
-          p_m_axis_tready   <= 0;
+      reg [(MASTER_WIDTH*8)-1:0] r_m_axis_tdata;
+      reg [MASTER_WIDTH-1:0]     r_m_axis_tkeep;
+      reg                        r_m_axis_tvalid;
+      reg                        r_m_axis_tlast;
+      
+      assign w_full_check  = (r_count == (RAM_DEPTH - SLAVE_WIDTH));
+      
+      assign w_empty_check = (r_count == 0);
+      
+      assign w_get_data    = (r_count >= MASTER_WIDTH) & m_axis_tready;
+      
+      assign s_axis_tready = r_ready & ~w_full_check & arstn;
+      
+      assign m_axis_tdata  = r_m_axis_tdata;
+      assign m_axis_tvalid = r_m_axis_tvalid;
+      
+      assign m_axis_tkeep  = r_m_axis_tkeep;
+      
+      assign m_axis_tlast  = r_m_axis_tlast;
+      
+      /*
+      * AXIS OUT
+      */
+      always @(posedge aclk)
+      begin
+        if(arstn == 1'b0)
+        begin
+          r_m_axis_tdata  <= 0;
+          r_m_axis_tvalid <= 1'b0;
+          r_m_axis_tlast  <= 1'b0;
         end else begin
-          //when ready, 0 out data so we don't send out the same thing over and over.
-          //if we are still sending data, the if below will blow this up (in a good way).
-          if(m_axis_tready == 1'b1) begin
-            reg_data_valid  <= 0;
-            reg_data_last   <= 0;
-            //no valid data, so lets 0 out previous to allow a valid assert of data without ready to happen.
-            p_m_axis_tready <= 0;
-          end
-          
-          //valid data and we are ready for data, or per axis standard we pump out valid data and wait for ready to continue.
-          if((s_axis_tvalid == 1'b1) && (~p_m_axis_tready || m_axis_tready)) begin
-            reg_data_buffer[counter] <= s_axis_tdata;
-            
-            reg_data_last <= reg_data_last | s_axis_tlast;
-            
-            p_m_axis_tready <= 1'b1;
-            
-            counter <= (REVERSE == 0 ? counter + 1 : counter - 1);
-            
-            if(counter == (REVERSE == 0 ? (MASTER_WIDTH/SLAVE_WIDTH)-1 : 0)) begin
-              counter         <= (REVERSE == 0 ? 0 : (MASTER_WIDTH/SLAVE_WIDTH)-1);
-              reg_data_valid  <= 1;
+          case(r_state)
+            READY:
+            begin
+              if(m_axis_tready == 1'b1)
+              begin
+                r_m_axis_tdata  <= 0;
+                r_m_axis_tvalid <= 1'b0;
+                r_m_axis_tlast  <= 1'b0;
+              end
+                              
+              if(w_get_data)
+              begin
+                r_m_axis_tdata <= r_fifo_tdata[r_count*8-1 -:MASTER_WIDTH*8];
+                r_m_axis_tlast <= |r_fifo_tlast;
+                r_m_axis_tkeep <= r_fifo_tkeep[r_count-1 -:MASTER_WIDTH];
+                r_m_axis_tvalid <= 1'b1;
+              end
             end
-          end
+            default:
+            begin
+              if(m_axis_tready == 1'b1)
+              begin
+                r_m_axis_tdata  <= 0;
+                r_m_axis_tvalid <= 1'b0;
+                r_m_axis_tlast  <= 1'b0;
+                
+                if(w_get_data)
+                begin
+                  r_m_axis_tdata <= r_fifo_tdata[r_count*8-1 -:MASTER_WIDTH*8];
+                  r_m_axis_tlast <= |r_fifo_tlast;
+                  r_m_axis_tkeep <= r_fifo_tkeep[r_count-1 -:MASTER_WIDTH];
+                  r_m_axis_tvalid <= 1'b1;
+                end
+              end
+            end
+          endcase
         end
       end
-    // slave input is larger then master register method (reduce)
-    end else begin : gen_SLAVE_LARGE
-      //buffer
-      reg [(MASTER_WIDTH*8)-1:0] reg_data_buffer[SLAVE_WIDTH/MASTER_WIDTH-1:0];
-      reg                        reg_data_valid;
-      reg                        reg_data_last[SLAVE_WIDTH/MASTER_WIDTH-1:0];
-      reg [(MASTER_WIDTH*8)-1:0] reg_m_axis_tdata;
       
-      //counter
-      reg [clogb2(SLAVE_WIDTH):0] counter;
-      //index
-      reg [clogb2(SLAVE_WIDTH):0] index;
-      
-      //split s_axis
-      wire [(MASTER_WIDTH*8)-1:0] split_s_axis_tdata[SLAVE_WIDTH/MASTER_WIDTH-1:0];
-      
-      //m_axis_tready
-      reg p_m_axis_tready;
-      
-      //split slave tdata into pieces the size of master tdata
-      for(gen_index = 0; gen_index < (SLAVE_WIDTH/MASTER_WIDTH); gen_index = gen_index + 1) begin : gen_SLAVE_SPLIT
-        assign split_s_axis_tdata[gen_index] = s_axis_tdata[(8*MASTER_WIDTH*(gen_index+1))-1:8*MASTER_WIDTH*gen_index] ;
+      // maintain state machine
+      always @(posedge aclk) begin
+        if(arstn == 1'b0) begin
+          r_count <= {RAM_DEPTH_POW{1'b0}};
+          r_state <= EMPTY;
+          r_ready <= 1'b0;
+        end else begin
+          r_state <= r_state;
+          
+          r_ready <= 1'b0;
+          
+          case(r_state)
+            READY:
+            begin
+              r_ready <= 1'b1;
+              
+              case({w_get_data, s_axis_tvalid})
+                2'b11: r_count <= r_count + SLAVE_WIDTH - MASTER_WIDTH;
+                2'b10: r_count <= r_count - MASTER_WIDTH;
+                2'b01: r_count <= r_count + SLAVE_WIDTH;
+                default: r_count <= r_count;
+              endcase
+              
+              if(w_full_check & ~m_axis_tready) begin
+                r_state <= FULL;
+                r_ready <= 1'b0;
+                r_count <= r_count;
+              end
+              
+              if(w_empty_check) begin
+                r_state <= EMPTY;
+              end
+            end
+            FULL:
+            begin
+              if(m_axis_tready) begin
+                r_count  <= (w_get_data ? r_count - MASTER_WIDTH : r_count);
+                
+                if(w_full_check == 1'b0) begin
+                  r_state <= READY;
+                  r_ready <= 1'b1;
+                end
+                
+                if(w_empty_check) begin
+                  r_state <= EMPTY;
+                  r_ready <= 1'b1;
+                end
+              end
+            end
+            EMPTY:
+            begin
+              r_ready <= 1'b1;
+              
+              if(s_axis_tvalid) begin
+                r_state <= READY;
+                r_count <= (s_axis_tvalid ? r_count + SLAVE_WIDTH : r_count);
+              end
+            end
+            default:
+            begin
+              r_state <= EMPTY;
+              r_count <= {RAM_DEPTH_POW{1'b0}};
+            end
+          endcase
+        end
       end
       
-      //only ready when taking in data or if conditons say so.
-      assign s_axis_tready = (counter == (SLAVE_WIDTH/MASTER_WIDTH)-1 ? (~p_m_axis_tready | m_axis_tready) & arstn : 1'b0);
-      //output for master axis data
-      assign m_axis_tdata  = (reg_data_valid == 1'b1 ? reg_data_buffer[counter] : 0);
-      assign m_axis_tvalid = reg_data_valid;
-      assign m_axis_tlast  = (reg_data_valid == 1'b1 ? reg_data_last[counter] : 0);
-      
-      //process data
+      //data insertion
       always @(posedge aclk) begin
-        //clear all
         if(arstn == 1'b0) begin
-          for(index = 0; index < (SLAVE_WIDTH/MASTER_WIDTH); index = index + 1) begin
-            reg_data_buffer[index] <= 0;
-            reg_data_last[index]   <= 0;
-          end
-          reg_data_valid    <= 0;
-          reg_m_axis_tdata  <= 0;
-          counter           <= (REVERSE == 0 ? (SLAVE_WIDTH/MASTER_WIDTH)-1 : 0);
-          p_m_axis_tready   <= 0;
+          r_fifo_tdata <= {RAM_DEPTH*8{1'b0}};
+          r_fifo_tlast <= {RAM_DEPTH/8{1'b0}};
+          r_fifo_tkeep <= {RAM_DEPTH{1'b0}};
         end else begin
-          //when ready, 0 out data so we don't send out the same thing over and over.
-          //if we are still sending data, the if below will blow this up (in a good way).
-          if(m_axis_tready == 1'b1) begin
-            reg_data_valid  <= 0;
-            //no valid data, so lets 0 out previous to allow a valid assert of data without ready to happen.
-            p_m_axis_tready <= 0;
-          end
-          
-          //when data is valid, counter is correct, and we are ready for data
-          //(p tready tells if we have ever been, and allows for valid data to be output first if not, per axis standard).
-          //Then lets register some new data, and reset the counter to 1 to output this new data starting at its top.
-          if((s_axis_tvalid == 1'b1) && (counter == (REVERSE == 0 ? (MASTER_WIDTH/SLAVE_WIDTH)-1 : 0)) && (~p_m_axis_tready || m_axis_tready)) begin
-            for(index = 0; index < (SLAVE_WIDTH/MASTER_WIDTH); index = index + 1) begin
-              reg_data_buffer[index] <= split_s_axis_tdata[index];
-              reg_data_last[index] <= ((index == (SLAVE_WIDTH/MASTER_WIDTH)-1) ? s_axis_tlast : 0);
+          case(r_state)
+            FULL:
+            begin
+              r_fifo_tdata <= r_fifo_tdata;
+              r_fifo_tlast <= r_fifo_tlast;
+              r_fifo_tkeep <= r_fifo_tkeep;
             end
-            
-            counter <= (REVERSE == 0 ? 0 : (SLAVE_WIDTH/MASTER_WIDTH)-1);
-            
-            reg_data_valid  <= 1'b1;
-            
-            p_m_axis_tready <= 1'b1;
-          end
-          
-          //only decrease the counter when its not 0 (underrun prevention) and the next core is ready for more data.
-          if((counter != (REVERSE == 0 ? (MASTER_WIDTH/SLAVE_WIDTH)-1 : 0)) && (m_axis_tready == 1'b1)) begin
-            counter         <= (REVERSE == 0 ? counter + 1 : counter - 1);
-            reg_data_valid  <= 1'b1;
-            p_m_axis_tready <= 1'b1;
-          end         
+            default:
+            begin
+              r_fifo_tdata <= (s_axis_tvalid ? {r_fifo_tdata[RAM_DEPTH*8-1-SLAVE_WIDTH:0], s_axis_tdata} : r_fifo_tdata);
+              r_fifo_tlast <= (s_axis_tvalid ? {r_fifo_tlast[RAM_DEPTH-1-1:0], s_axis_tlast} : r_fifo_tlast);
+              r_fifo_tkeep <= (s_axis_tvalid ? {r_fifo_tkeep[RAM_DEPTH-1-SLAVE_WIDTH:0], s_axis_tkeep}: r_fifo_tkeep);
+            end
+          endcase
         end
       end
     end
   endgenerate
   
 endmodule
+
+`resetall

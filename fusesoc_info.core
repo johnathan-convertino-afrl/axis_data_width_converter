@@ -1,7 +1,7 @@
 CAPI=2:
 
-name: AFRL:streaming_converter:axis_data_width_converter:1.0.1
-description: Convert axis data width for even divides (2/4 4/2 4/4 1/11 11/1).
+name: AFRL:streaming_converter:axis_data_width_converter:2.0.0
+description: Convert axis data width for all divides (2/4 4/2 4/4 1/11 11/1 3/5 5/3).
 
 filesets:
   src:
