@@ -63,7 +63,7 @@
 module axis_data_width_converter #(
     parameter SLAVE_WIDTH   = 1,
     parameter MASTER_WIDTH  = 1,
-    parameter FLUSH_LAST    = 0
+    parameter FLUSH_LAST    = 1
   )
   (
     input  wire                        aclk,
@@ -109,6 +109,8 @@ module axis_data_width_converter #(
   
   localparam FLUSH_LAST_BOOL = (FLUSH_LAST == 0 ? 1'b0 : 1'b1);
   
+  genvar gen_index;
+  
   generate
     if(SLAVE_WIDTH == MASTER_WIDTH) begin : gen_EQUAL_WIDTH
       assign m_axis_tdata  = s_axis_tdata;
@@ -132,6 +134,9 @@ module axis_data_width_converter #(
       wire [MASTER_WIDTH-1:0]     w_m_axis_tkeep;
       wire                        w_m_axis_tvalid;
       wire                        w_m_axis_tlast;
+      
+      wire [(MASTER_WIDTH*8)-1:0] w_m_axis_tdata_align;
+      wire [MASTER_WIDTH-1:0]     w_m_axis_tkeep_align;
 
       // state register
       reg   [ 1:0] r_state;
@@ -164,10 +169,10 @@ module axis_data_width_converter #(
       
       //r_count < MASTER_WIDTH ?  {MASTER_WIDTH*8{1'b0}} | r_fifo_tdata[RAM_DEPTH*8-1 -:] :
       
-      assign w_m_axis_tdata  = (w_get_data ? r_fifo_tdata[(RAM_DEPTH-r_count)*8 +:MASTER_WIDTH*8] : r_m_axis_tdata);
+      assign w_m_axis_tdata  = (w_get_data ? (r_count <= MASTER_WIDTH ? w_m_axis_tdata_align : r_fifo_tdata[(RAM_DEPTH-r_count)*8 +:MASTER_WIDTH*8]) : r_m_axis_tdata);
       assign w_m_axis_tvalid = (w_get_data ? 1'b1 : r_m_axis_tvalid);
       
-      assign w_m_axis_tkeep  = (w_get_data ? r_fifo_tkeep[(RAM_DEPTH-r_count) +:MASTER_WIDTH] : r_m_axis_tkeep);
+      assign w_m_axis_tkeep  = (w_get_data ? (r_count <= MASTER_WIDTH ? w_m_axis_tkeep_align : r_fifo_tkeep[(RAM_DEPTH-r_count) +:MASTER_WIDTH]) : r_m_axis_tkeep);
       
       assign w_m_axis_tlast  = (w_get_data ? (r_count <= MASTER_WIDTH ? |r_fifo_tlast[(RAM_DEPTH-r_count) +:MASTER_WIDTH] : 1'b0) : r_m_axis_tlast);
       
@@ -175,6 +180,13 @@ module axis_data_width_converter #(
       assign m_axis_tvalid  = w_m_axis_tvalid;
       assign m_axis_tkeep   = w_m_axis_tkeep;
       assign m_axis_tlast   = w_m_axis_tlast;
+      
+      if(FLUSH_LAST_BOOL) begin : gen_LAST_FLUSH
+        for(gen_index = 1; gen_index <= MASTER_WIDTH; gen_index = gen_index + 1) begin : gen_BYTE_ALIGN
+          assign w_m_axis_tdata_align = (r_count == gen_index ? {{(MASTER_WIDTH-gen_index)*8{1'b0}}, r_fifo_tdata[(RAM_DEPTH-gen_index)*8 +:gen_index*8]}: {{MASTER_WIDTH*8{1'bz}}});
+          assign w_m_axis_tkeep_align = (r_count == gen_index ? {{(MASTER_WIDTH-gen_index){1'b0}}, r_fifo_tkeep[(RAM_DEPTH-gen_index) +:gen_index]}: {{MASTER_WIDTH{1'bz}}});
+        end
+      end
       
       /*
       * AXIS OUT
