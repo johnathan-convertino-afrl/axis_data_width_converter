@@ -102,8 +102,6 @@ async def conversion_test(dut):
 
         assert dut.m_axis_tlast.value.integer == 1, "tlast is not 1!"
 
-        assert dut.s_axis_tready.value.integer == 1, "tready is not 1!"
-
         assert rx_frame.tdata == tx_frame.tdata, "Input tdata does not match output"
 
     await RisingEdge(dut.aclk)
