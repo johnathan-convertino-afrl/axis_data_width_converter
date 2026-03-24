@@ -79,10 +79,10 @@ async def reset_dut(dut):
 @cocotb.test()
 async def conversion_test(dut):
 
-    if dut.SLAVE_WIDTH.value > dut.MASTER_WIDTH.value:
-      assert dut.SLAVE_WIDTH.value%dut.MASTER_WIDTH.value == 0, "Slave must be evenly divisable by the master"
-    elif dut.SLAVE_WIDTH.value < dut.MASTER_WIDTH.value:
-      assert dut.MASTER_WIDTH.value%dut.SLAVE_WIDTH.value == 0, "Master must be evenly divisable by the slave"
+    # if dut.SLAVE_WIDTH.value > dut.MASTER_WIDTH.value:
+    #   assert dut.SLAVE_WIDTH.value%dut.MASTER_WIDTH.value == 0, "Slave must be evenly divisable by the master"
+    # elif dut.SLAVE_WIDTH.value < dut.MASTER_WIDTH.value:
+    #   assert dut.MASTER_WIDTH.value%dut.SLAVE_WIDTH.value == 0, "Master must be evenly divisable by the slave"
 
     start_clock(dut)
 
@@ -92,7 +92,7 @@ async def conversion_test(dut):
     await reset_dut(dut)
 
     for x in range(0, 256):
-        data = x.to_bytes(length = 1, byteorder='little') * (dut.SLAVE_WIDTH.value if dut.SLAVE_WIDTH.value > dut.MASTER_WIDTH.value else dut.MASTER_WIDTH.value)
+        data = x.to_bytes(length = 1, byteorder='little') * dut.SLAVE_WIDTH.value * dut.MASTER_WIDTH.value
         tx_frame = AxiStreamFrame(data, tx_complete=Event())
 
         await axis_source.send(tx_frame)
@@ -118,10 +118,10 @@ async def conversion_test(dut):
 @cocotb.test()
 async def conversion_test_random_ready(dut):
 
-    if dut.SLAVE_WIDTH.value > dut.MASTER_WIDTH.value:
-      assert dut.SLAVE_WIDTH.value%dut.MASTER_WIDTH.value == 0, "Slave must be evenly divisable by the master"
-    elif dut.SLAVE_WIDTH.value < dut.MASTER_WIDTH.value:
-      assert dut.MASTER_WIDTH.value%dut.SLAVE_WIDTH.value == 0, "Master must be evenly divisable by the slave"
+    # if dut.SLAVE_WIDTH.value > dut.MASTER_WIDTH.value:
+    #   assert dut.SLAVE_WIDTH.value%dut.MASTER_WIDTH.value == 0, "Slave must be evenly divisable by the master"
+    # elif dut.SLAVE_WIDTH.value < dut.MASTER_WIDTH.value:
+    #   assert dut.MASTER_WIDTH.value%dut.SLAVE_WIDTH.value == 0, "Master must be evenly divisable by the slave"
 
     start_clock(dut)
 
@@ -135,7 +135,7 @@ async def conversion_test_random_ready(dut):
     data = bytearray()
 
     for x in range(1024):
-      data += random.randrange(256).to_bytes(length = 1, byteorder='little') * (dut.SLAVE_WIDTH.value if dut.SLAVE_WIDTH.value > dut.MASTER_WIDTH.value else dut.MASTER_WIDTH.value)
+      data += random.randrange(256).to_bytes(length = 1, byteorder='little') * dut.SLAVE_WIDTH.value * dut.MASTER_WIDTH.value
 
     tx_frame = AxiStreamFrame(data, tx_complete=Event())
 

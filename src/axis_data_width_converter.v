@@ -85,7 +85,7 @@ module axis_data_width_converter #(
   //
   //  <READY>   - d1
   //  <FULL>    - d2
-  //  <EMPTY>   - d3
+  //  <FLUSH>   - d3
   //  <ERROR>   - d0
 
   // State: READY
@@ -94,17 +94,16 @@ module axis_data_width_converter #(
   // State: FULL
   // In this state core is FULL and can't accept more data.
   localparam FULL   = 2'd2;
-  // State: EMPTY
-  // In this state core is EMPTY and has no valid data.
-  localparam EMPTY  = 2'd3;
+  // State: FLUSH
+  // In this state core has received TLAST and will flush out data.
+  localparam FLUSH  = 2'd3;
   // State: ERROR
   // Should never be reached, state machine is in a bad state.
   localparam ERROR  = 2'd0;
   
   localparam RAM_DEPTH_POW = clogb2(MASTER_WIDTH*SLAVE_WIDTH);
   
-  localparam RAM_DEPTH = 2**RAM_DEPTH_POW;
-  
+  localparam RAM_DEPTH = 2**(RAM_DEPTH_POW+1);
   
   generate
     if(SLAVE_WIDTH == MASTER_WIDTH) begin : gen_EQUAL_WIDTH
@@ -128,11 +127,11 @@ module axis_data_width_converter #(
       
       // FIFO reg
       reg [RAM_DEPTH*8-1:0] r_fifo_tdata;
-      reg [RAM_DEPTH/8-1:0] r_fifo_tlast;
+      reg [RAM_DEPTH-1:0]   r_fifo_tlast;
       reg [RAM_DEPTH-1:0]   r_fifo_tkeep;
       
       // counter, in bytes
-      reg [RAM_DEPTH_POW-1:0] r_count;
+      reg [RAM_DEPTH_POW:0] r_count;
       
       reg r_ready;
       
@@ -141,20 +140,20 @@ module axis_data_width_converter #(
       reg                        r_m_axis_tvalid;
       reg                        r_m_axis_tlast;
       
-      assign w_full_check  = (r_count == (RAM_DEPTH - SLAVE_WIDTH));
+      assign w_full_check  = (r_count >= (RAM_DEPTH - SLAVE_WIDTH*2));
       
       assign w_empty_check = (r_count == 0);
       
-      assign w_get_data    = (r_count >= MASTER_WIDTH) & m_axis_tready;
+      assign w_get_data    = (r_count >= MASTER_WIDTH);
       
-      assign s_axis_tready = r_ready & ~w_full_check & arstn;
+      assign s_axis_tready = r_ready & arstn;
       
-      assign m_axis_tdata  = r_m_axis_tdata;
-      assign m_axis_tvalid = r_m_axis_tvalid;
+      assign m_axis_tdata  = (w_get_data ? r_fifo_tdata[r_count*8-1 -:MASTER_WIDTH*8] : r_m_axis_tdata);
+      assign m_axis_tvalid = (w_get_data ? 1'b1 : r_m_axis_tvalid);
       
-      assign m_axis_tkeep  = r_m_axis_tkeep;
+      assign m_axis_tkeep  = (w_get_data ? r_fifo_tkeep[r_count-1 -:MASTER_WIDTH] : r_m_axis_tkeep);
       
-      assign m_axis_tlast  = r_m_axis_tlast;
+      assign m_axis_tlast  = (w_get_data ? (SLAVE_WIDTH > MASTER_WIDTH ? &r_fifo_tlast[r_count-1 -:MASTER_WIDTH] : |r_fifo_tlast[r_count-1 -:MASTER_WIDTH]) : r_m_axis_tlast);
       
       /*
       * AXIS OUT
@@ -170,36 +169,28 @@ module axis_data_width_converter #(
           case(r_state)
             READY:
             begin
-              if(m_axis_tready == 1'b1)
+              if(w_get_data)
+              begin
+                r_m_axis_tdata <= r_fifo_tdata[r_count*8-1 -:MASTER_WIDTH*8];
+                r_m_axis_tlast <= (SLAVE_WIDTH > MASTER_WIDTH ? &r_fifo_tlast[r_count-1 -:MASTER_WIDTH] : |r_fifo_tlast[r_count-1 -:MASTER_WIDTH]);
+                r_m_axis_tkeep <= r_fifo_tkeep[r_count-1 -:MASTER_WIDTH];
+                r_m_axis_tvalid <= 1'b1;
+              end
+              
+              if(m_axis_tready)
               begin
                 r_m_axis_tdata  <= 0;
                 r_m_axis_tvalid <= 1'b0;
                 r_m_axis_tlast  <= 1'b0;
-              end
-                              
-              if(w_get_data)
-              begin
-                r_m_axis_tdata <= r_fifo_tdata[r_count*8-1 -:MASTER_WIDTH*8];
-                r_m_axis_tlast <= |r_fifo_tlast;
-                r_m_axis_tkeep <= r_fifo_tkeep[r_count-1 -:MASTER_WIDTH];
-                r_m_axis_tvalid <= 1'b1;
               end
             end
             default:
             begin
-              if(m_axis_tready == 1'b1)
+              if(m_axis_tready)
               begin
                 r_m_axis_tdata  <= 0;
                 r_m_axis_tvalid <= 1'b0;
                 r_m_axis_tlast  <= 1'b0;
-                
-                if(w_get_data)
-                begin
-                  r_m_axis_tdata <= r_fifo_tdata[r_count*8-1 -:MASTER_WIDTH*8];
-                  r_m_axis_tlast <= |r_fifo_tlast;
-                  r_m_axis_tkeep <= r_fifo_tkeep[r_count-1 -:MASTER_WIDTH];
-                  r_m_axis_tvalid <= 1'b1;
-                end
               end
             end
           endcase
@@ -209,8 +200,8 @@ module axis_data_width_converter #(
       // maintain state machine
       always @(posedge aclk) begin
         if(arstn == 1'b0) begin
-          r_count <= {RAM_DEPTH_POW{1'b0}};
-          r_state <= EMPTY;
+          r_count <= {RAM_DEPTH_POW+1{1'b0}};
+          r_state <= READY;
           r_ready <= 1'b0;
         end else begin
           r_state <= r_state;
@@ -222,52 +213,54 @@ module axis_data_width_converter #(
             begin
               r_ready <= 1'b1;
               
-              case({w_get_data, s_axis_tvalid})
+              case({m_axis_tready & ~w_empty_check & w_get_data, s_axis_tvalid})
                 2'b11: r_count <= r_count + SLAVE_WIDTH - MASTER_WIDTH;
                 2'b10: r_count <= r_count - MASTER_WIDTH;
                 2'b01: r_count <= r_count + SLAVE_WIDTH;
                 default: r_count <= r_count;
               endcase
               
-              if(w_full_check & ~m_axis_tready) begin
-                r_state <= FULL;
+              if(w_full_check) begin
                 r_ready <= 1'b0;
-                r_count <= r_count;
+                r_state <= FULL;
+                // r_count <= r_count;
               end
               
-              if(w_empty_check) begin
-                r_state <= EMPTY;
-              end
+              // if(w_get_data & r_m_axis_tvalid)
+              // begin
+              //   r_ready <= 1'b0;
+              //   r_state <= FLUSH;
+              // end
+              
+              // if(|r_fifo_tlast)
+              // begin
+              //   r_state <= FLUSH;
+              //   r_count <= {RAM_DEPTH_POW{1'b0}};
+              // end
             end
             FULL:
             begin
               if(m_axis_tready) begin
                 r_count  <= (w_get_data ? r_count - MASTER_WIDTH : r_count);
-                
-                if(w_full_check == 1'b0) begin
-                  r_state <= READY;
-                  r_ready <= 1'b1;
-                end
-                
-                if(w_empty_check) begin
-                  r_state <= EMPTY;
-                  r_ready <= 1'b1;
-                end
+              end
+              
+              if(w_full_check == 1'b0) begin
+                r_state <= READY;
+                r_ready <= 1'b1;
               end
             end
-            EMPTY:
+            FLUSH:
             begin
-              r_ready <= 1'b1;
-              
-              if(s_axis_tvalid) begin
+              if(m_axis_tready == 1'b1)
+              begin
                 r_state <= READY;
-                r_count <= (s_axis_tvalid ? r_count + SLAVE_WIDTH : r_count);
+                r_ready <= 1'b1;
               end
             end
             default:
             begin
-              r_state <= EMPTY;
-              r_count <= {RAM_DEPTH_POW{1'b0}};
+              r_state <= READY;
+              r_count <= {RAM_DEPTH_POW+1{1'b0}};
             end
           endcase
         end
@@ -277,7 +270,7 @@ module axis_data_width_converter #(
       always @(posedge aclk) begin
         if(arstn == 1'b0) begin
           r_fifo_tdata <= {RAM_DEPTH*8{1'b0}};
-          r_fifo_tlast <= {RAM_DEPTH/8{1'b0}};
+          r_fifo_tlast <= {RAM_DEPTH{1'b0}};
           r_fifo_tkeep <= {RAM_DEPTH{1'b0}};
         end else begin
           case(r_state)
@@ -290,8 +283,14 @@ module axis_data_width_converter #(
             default:
             begin
               r_fifo_tdata <= (s_axis_tvalid ? {r_fifo_tdata[RAM_DEPTH*8-1-SLAVE_WIDTH:0], s_axis_tdata} : r_fifo_tdata);
-              r_fifo_tlast <= (s_axis_tvalid ? {r_fifo_tlast[RAM_DEPTH-1-1:0], s_axis_tlast} : r_fifo_tlast);
+              r_fifo_tlast <= (s_axis_tvalid ? {r_fifo_tlast[RAM_DEPTH-1-SLAVE_WIDTH:0], {SLAVE_WIDTH{s_axis_tlast}}} : r_fifo_tlast);
               r_fifo_tkeep <= (s_axis_tvalid ? {r_fifo_tkeep[RAM_DEPTH-1-SLAVE_WIDTH:0], s_axis_tkeep}: r_fifo_tkeep);
+              
+              // if(w_full_check) begin
+              //   r_fifo_tdata <= r_fifo_tdata;
+              //   r_fifo_tlast <= r_fifo_tlast;
+              //   r_fifo_tkeep <= r_fifo_tkeep;
+              // end
             end
           endcase
         end
