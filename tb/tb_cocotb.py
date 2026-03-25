@@ -148,8 +148,6 @@ async def conversion_test_random_ready(dut):
     axis_sink.pause = False
 
     await RisingEdge(dut.aclk)
-
-    assert dut.s_axis_tready.value.integer == 1, "tready is not 1!"
     
 # Function: conversion_test_flush_last
 # Coroutine that is identified as a test routine. This routine tests for randomized ready from the sink.
@@ -185,8 +183,6 @@ async def conversion_test_flush_last(dut):
     assert rx_frame.tdata == tx_frame.tdata, "Input tdata does not match output"
 
     await RisingEdge(dut.aclk)
-
-    assert dut.s_axis_tready.value.integer == 1, "tready is not 1!"
     
 # Function: conversion_test_flush_last_random_ready
 # Coroutine that is identified as a test routine. This routine tests for randomized ready from the sink.
@@ -228,8 +224,6 @@ async def conversion_test_flush_last_random_ready(dut):
     axis_sink.pause = False
 
     await RisingEdge(dut.aclk)
-
-    assert dut.s_axis_tready.value.integer == 1, "tready is not 1!"
 
 # Function: in_reset
 # Coroutine that is identified as a test routine. This routine tests if device stays

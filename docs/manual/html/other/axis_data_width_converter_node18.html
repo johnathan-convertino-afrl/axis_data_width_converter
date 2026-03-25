@@ -3,7 +3,7 @@
 <!--Converted with LaTeX2HTML 2024 (Released January 1, 2024) -->
 <HTML lang="en">
 <HEAD>
-<TITLE>Code Documentation</TITLE>
+<TITLE>cocotb</TITLE>
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
 <META NAME="viewport" CONTENT="width=device-width, initial-scale=1.0">
@@ -11,8 +11,7 @@
 
 <LINK REL="STYLESHEET" HREF="html.css">
 
-<LINK REL="next" HREF="axis_data_width_converter_node23.html">
-<LINK REL="previous" HREF="axis_data_width_converter_node15.html">
+<LINK REL="previous" HREF="axis_data_width_converter_node17.html">
 <LINK REL="next" HREF="axis_data_width_converter_node19.html">
 </HEAD>
 
@@ -23,64 +22,57 @@
  HREF="axis_data_width_converter_node19.html">
 <IMG WIDTH="37" HEIGHT="24" ALT="next" SRC="next.png"></A> 
 <A
- HREF="html.html">
+ HREF="axis_data_width_converter_node16.html">
 <IMG WIDTH="26" HEIGHT="24" ALT="up" SRC="up.png"></A> 
 <A
  HREF="axis_data_width_converter_node17.html">
 <IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A> 
-<A ID="tex2html91"
+<A ID="tex2html95"
   HREF="axis_data_width_converter_node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALT="contents" SRC="contents.png"></A>  
 <BR>
 <B> Next:</B> <A
- HREF="axis_data_width_converter_node19.html">axis_data_width_converter</A>
+ HREF="axis_data_width_converter_node19.html">Module Documentation</A>
 <B> Up:</B> <A
- HREF="html.html">html</A>
+ HREF="axis_data_width_converter_node16.html">Simulation</A>
 <B> Previous:</B> <A
- HREF="axis_data_width_converter_node17.html">cocotb</A>
- &nbsp; <B>  <A ID="tex2html92"
+ HREF="axis_data_width_converter_node17.html">iverilog</A>
+ &nbsp; <B>  <A ID="tex2html96"
   HREF="axis_data_width_converter_node1.html">Contents</A></B> 
 <BR>
 <BR></DIV>
 <!--End of Navigation Panel-->
 
-<H1><A ID="SECTION00060000000000000000"></A> <A ID="Code_Documentation"></A>
-<BR>
-Code Documentation
-</H1>
+<H2><A ID="SECTION00052000000000000000">
+cocotb</A>
+</H2>
 
 <P>
-Natural docs is used to generate documentation for this project. The next lists the following sections.
+To use the cocotb tests you must install the following python libraries.
+<TABLE FRAME="VOID" CELLPADDING="4"><TR><TD>
+<PRE>
+  $ pip install cocotb
+  $ pip install cocotbext-axi
+</PRE>
+</TD></TR></TABLE>
 
 <P>
-
-<UL>
-<LI><SPAN  CLASS="textbf">axis_data_width_converter</SPAN> AXIS data width converter, converts from one BUS data size to another.
-<BR></LI>
-<LI><SPAN  CLASS="textbf">tb_axis</SPAN> Verilog test bench.
-<BR></LI>
-<LI><SPAN  CLASS="textbf">tb_cocotb verilog</SPAN> Verilog test bench base for cocotb.
-<BR></LI>
-<LI><SPAN  CLASS="textbf">tb_cocotb python</SPAN> cocotb unit test functions.
-<BR></LI>
-</UL>
+Then you must use the cocotb sim target. In this case it is sim_cocotb. This target can be run with various bus and fifo parameters.
+<TABLE FRAME="VOID" CELLPADDING="4"><TR><TD>
+<PRE>
+  $ fusesoc run --target sim_cocotb AFRL:streaming_converter:axis_data_width_converter:2.0.0 --SLAVE_WIDTH=7 --MASTER_WIDTH=32
+</PRE>
+</TD></TR></TABLE>
 
 <P>
-<BR><HR>
-<!--Table of Child-Links-->
-<A ID="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+The following is an example command to run through various parameters without typing them one by one.
+<TABLE FRAME="VOID" CELLPADDING="4"><TR><TD>
+<PRE>
+  $ echo "STARTING TEST"; for i in {1..32}; do sleep 5; export RY=$((RANDOM%31+1)); fusesoc run --target sim_cocotb AFRL:streaming_converter:axis_data_width_converter:2.0.0 --SLAVE_WIDTH=$i --MASTER_WIDTH=$RY; echo "SLAVE WIDTH:" $i "MASTER WIDTH:" $RY; done
 
-<UL CLASS="ChildLinks">
-<LI><A ID="tex2html93"
-  HREF="axis_data_width_converter_node19.html"><a href="../files/axis_data_width_converter-v.html">axis_data_width_converter</a></A>
-<LI><A ID="tex2html94"
-  HREF="axis_data_width_converter_node20.html"><a href="../files2/tb_axis-v.html">tb_axis</a></A>
-<LI><A ID="tex2html95"
-  HREF="axis_data_width_converter_node21.html"><a href="../files2/tb_cocotb-v.html">tb_cocotb verilog</a></A>
-<LI><A ID="tex2html96"
-  HREF="axis_data_width_converter_node22.html"><a href="../files2/tb_cocotb-py.html">tb_cocotb python</a></A>
-</UL>
-<!--End of Table of Child-Links-->
+</PRE>
+</TD></TR></TABLE>
+<P>
 <BR><HR>
 
 </BODY>

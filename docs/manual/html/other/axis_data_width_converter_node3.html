@@ -28,7 +28,7 @@
 <A
  HREF="axis_data_width_converter_node2.html">
 <IMG WIDTH="63" HEIGHT="24" ALT="previous" SRC="prev.png"></A> 
-<A ID="tex2html50"
+<A ID="tex2html53"
   HREF="axis_data_width_converter_node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALT="contents" SRC="contents.png"></A>  
 <BR>
@@ -38,7 +38,7 @@
  HREF="axis_data_width_converter_node2.html">Usage</A>
 <B> Previous:</B> <A
  HREF="axis_data_width_converter_node2.html">Usage</A>
- &nbsp; <B>  <A ID="tex2html51"
+ &nbsp; <B>  <A ID="tex2html54"
   HREF="axis_data_width_converter_node1.html">Contents</A></B> 
 <BR>
 <BR></DIV>
@@ -49,10 +49,10 @@ Introduction</A>
 </H2>
 
 <P>
-This data width converter is for even integer divides of slave to master or
-master to slave. Example this core can go from 4 bytes to 2 bytes or 2 bytes to
-4 bytes. It can not go from 5 bytes to 2 bytes or 2 bytes to 5 bytes. 4/2 is 2, a
-round number. 5/2 is a fractional number that will not work with this core.
+This data width converter is for any size slave to master convertion. Meaning, 
+uneven divides and even divides will be converted without issue. If flush mode
+is not used the core will hold data if there is not enough for the output. Flush
+mode will push out any left over data if TLAST is also valid. 
 
 <P>
 <BR><HR>

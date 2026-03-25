@@ -1,5 +1,5 @@
 # AXIS DATA WIDTH CONVERTER
-### Simple data width converted for ratios that divide into one another.
+### Convert any data width to any other data width.
 ---
 
 ![image](docs/manual/img/AFRL.png)
@@ -8,7 +8,7 @@
 
   author: Jay Convertino   
   
-  date: 2023.02.01  
+  date: 2026.03.25  
   
   details: Simple data width converter for axis devices. Data widths must divide evenly.  
   
@@ -23,10 +23,11 @@
 
 ### Version
 #### Current
-  - V1.0.0 - initial release
+  - V2.0.0 - initial release of all size converter with flush last bytes.
 
 #### Previous
-  - none
+  - V1.0.1 - bugs
+  - V1.0.0 - initial release
 
 ### DOCUMENTATION
   For detailed usage information, please navigate to one of the following sources. They are the same, just in a different format.
@@ -36,9 +37,9 @@
 
 ### PARAMETERS
 
-* SLAVE_WIDTH  : DEFAULT = 1 : Slave width in bytes.
-* MASTER_WIDTH : DEFAULT = 1 : Master width in bytes.
-* REVERSE : DEFAULT = 0 : Set to 1 to reverse the order of how bytes are output.
+ *   SLAVE_WIDTH    - Width of the slave input bus in bytes
+ *   MASTER_WIDTH   - Width of the master output bus in bytes
+ *   FLUSH_LAST     - Once last bytes are received, force them out regardless of size (no longer ready to accept more data once this happens).
 
 ### COMPONENTS
 #### SRC
