@@ -150,6 +150,86 @@ async def conversion_test_random_ready(dut):
     await RisingEdge(dut.aclk)
 
     assert dut.s_axis_tready.value.integer == 1, "tready is not 1!"
+    
+# Function: conversion_test_flush_last
+# Coroutine that is identified as a test routine. This routine tests for randomized ready from the sink.
+#
+# Parameters:
+#   dut - Device under test passed from cocotb.
+@cocotb.test()
+async def conversion_test_flush_last(dut):
+
+    # if dut.SLAVE_WIDTH.value > dut.MASTER_WIDTH.value:
+    #   assert dut.SLAVE_WIDTH.value%dut.MASTER_WIDTH.value == 0, "Slave must be evenly divisable by the master"
+    # elif dut.SLAVE_WIDTH.value < dut.MASTER_WIDTH.value:
+    #   assert dut.MASTER_WIDTH.value%dut.SLAVE_WIDTH.value == 0, "Master must be evenly divisable by the slave"
+
+    start_clock(dut)
+
+    axis_source = AxiStreamSource(AxiStreamBus.from_prefix(dut, "s_axis"), dut.aclk, dut.arstn, False)
+    axis_sink = AxiStreamSink(AxiStreamBus.from_prefix(dut, "m_axis"), dut.aclk, dut.arstn, False)
+
+    await reset_dut(dut)
+
+    data = bytearray()
+
+    for x in range(1024):
+      data += random.randrange(256).to_bytes(length = 1, byteorder='little') * (dut.SLAVE_WIDTH.value * dut.MASTER_WIDTH.value + 1)
+
+    tx_frame = AxiStreamFrame(data, tx_complete=Event())
+
+    await axis_source.send(tx_frame)
+    await tx_frame.tx_complete.wait()
+
+    rx_frame = await axis_sink.recv()
+    assert rx_frame.tdata == tx_frame.tdata, "Input tdata does not match output"
+
+    await RisingEdge(dut.aclk)
+
+    assert dut.s_axis_tready.value.integer == 1, "tready is not 1!"
+    
+# Function: conversion_test_flush_last_random_ready
+# Coroutine that is identified as a test routine. This routine tests for randomized ready from the sink.
+#
+# Parameters:
+#   dut - Device under test passed from cocotb.
+@cocotb.test()
+async def conversion_test_flush_last_random_ready(dut):
+
+    # if dut.SLAVE_WIDTH.value > dut.MASTER_WIDTH.value:
+    #   assert dut.SLAVE_WIDTH.value%dut.MASTER_WIDTH.value == 0, "Slave must be evenly divisable by the master"
+    # elif dut.SLAVE_WIDTH.value < dut.MASTER_WIDTH.value:
+    #   assert dut.MASTER_WIDTH.value%dut.SLAVE_WIDTH.value == 0, "Master must be evenly divisable by the slave"
+
+    start_clock(dut)
+
+    axis_source = AxiStreamSource(AxiStreamBus.from_prefix(dut, "s_axis"), dut.aclk, dut.arstn, False)
+    axis_sink = AxiStreamSink(AxiStreamBus.from_prefix(dut, "m_axis"), dut.aclk, dut.arstn, False)
+
+    axis_sink.set_pause_generator(random_bool())
+
+    await reset_dut(dut)
+
+    data = bytearray()
+
+    for x in range(1024):
+      data += random.randrange(256).to_bytes(length = 1, byteorder='little') * (dut.SLAVE_WIDTH.value * dut.MASTER_WIDTH.value + 1)
+
+    tx_frame = AxiStreamFrame(data, tx_complete=Event())
+
+    await axis_source.send(tx_frame)
+    await tx_frame.tx_complete.wait()
+
+    rx_frame = await axis_sink.recv()
+    assert rx_frame.tdata == tx_frame.tdata, "Input tdata does not match output"
+
+    axis_sink.clear_pause_generator()
+
+    axis_sink.pause = False
+
+    await RisingEdge(dut.aclk)
+
+    assert dut.s_axis_tready.value.integer == 1, "tready is not 1!"
 
 # Function: in_reset
 # Coroutine that is identified as a test routine. This routine tests if device stays

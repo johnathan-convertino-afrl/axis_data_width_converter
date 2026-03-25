@@ -143,10 +143,12 @@ module tb_axis #(
     .aclk(tb_dut_clk),
     .arstn(tb_dut_rstn),
     .m_axis_tdata(tb_dut_data),
+    .m_axis_tkeep(tb_dut_keep),
     .m_axis_tvalid(tb_dut_valid),
     .m_axis_tready(tb_dut_ready),
     .m_axis_tlast(tb_dut_last),
     .s_axis_tdata(tb_stim_data),
+    .s_axis_tkeep(tb_stim_keep),
     .s_axis_tvalid(tb_stim_valid),
     .s_axis_tready(tb_stim_ready),
     .s_axis_tlast(tb_stim_last)

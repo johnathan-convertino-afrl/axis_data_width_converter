@@ -137,6 +137,8 @@ module axis_data_width_converter #(
       
       wire [(MASTER_WIDTH*8)-1:0] w_m_axis_tdata_align;
       wire [MASTER_WIDTH-1:0]     w_m_axis_tkeep_align;
+      wire                        w_valid_bytes_left;
+      wire                        w_valid_bytes_left_in_range;
 
       // state register
       reg   [ 1:0] r_state;
@@ -167,30 +169,28 @@ module axis_data_width_converter #(
       
       assign s_axis_tready  = r_ready & arstn;
       
-      //r_count < MASTER_WIDTH ?  {MASTER_WIDTH*8{1'b0}} | r_fifo_tdata[RAM_DEPTH*8-1 -:] :
-      
       assign w_m_axis_tdata  = (w_get_data ? (r_count <= MASTER_WIDTH ? w_m_axis_tdata_align : r_fifo_tdata[(RAM_DEPTH-r_count)*8 +:MASTER_WIDTH*8]) : r_m_axis_tdata);
-      assign w_m_axis_tvalid = (w_get_data ? 1'b1 : r_m_axis_tvalid);
+      assign w_m_axis_tvalid = (w_get_data ? (r_count <= MASTER_WIDTH ? |w_m_axis_tkeep_align : 1'b1) : r_m_axis_tvalid);
       
       assign w_m_axis_tkeep  = (w_get_data ? (r_count <= MASTER_WIDTH ? w_m_axis_tkeep_align : r_fifo_tkeep[(RAM_DEPTH-r_count) +:MASTER_WIDTH]) : r_m_axis_tkeep);
       
-      assign w_m_axis_tlast  = (w_get_data ? (r_count <= MASTER_WIDTH ? |r_fifo_tlast[(RAM_DEPTH-r_count) +:MASTER_WIDTH] : 1'b0) : r_m_axis_tlast);
+      assign w_m_axis_tlast  = (w_get_data ? (r_count <= MASTER_WIDTH ? |r_fifo_tlast[(RAM_DEPTH-r_count) +:MASTER_WIDTH] & |w_m_axis_tkeep_align : ~w_valid_bytes_left) : r_m_axis_tlast);
       
       assign m_axis_tdata   = w_m_axis_tdata;
       assign m_axis_tvalid  = w_m_axis_tvalid;
       assign m_axis_tkeep   = w_m_axis_tkeep;
       assign m_axis_tlast   = w_m_axis_tlast;
       
+      assign w_valid_bytes_left = (r_count == 0 ? 1'b0 : (r_count <= MASTER_WIDTH) ? 1'b1 : w_valid_bytes_left_in_range);
+      
       if(FLUSH_LAST_BOOL) begin : gen_LAST_FLUSH
-        for(gen_index = 0; gen_index <= MASTER_WIDTH; gen_index = gen_index + 1) begin : gen_BYTE_ALIGN
-          if(gen_index == 0)
-          begin
-            assign w_m_axis_tdata_align = {{MASTER_WIDTH*8{1'b0}}};
-            assign w_m_axis_tkeep_align = {{MASTER_WIDTH{1'b0}}};
-          end else begin
-            assign w_m_axis_tdata_align = (r_count == gen_index ? {{(MASTER_WIDTH-gen_index)*8{1'b0}}, r_fifo_tdata[(RAM_DEPTH-gen_index)*8 +:gen_index*8]}: {{MASTER_WIDTH*8{1'bz}}});
-            assign w_m_axis_tkeep_align = (r_count == gen_index ? {{(MASTER_WIDTH-gen_index){1'b0}}, r_fifo_tkeep[(RAM_DEPTH-gen_index) +:gen_index]}: {{MASTER_WIDTH{1'bz}}});
-          end
+        for(gen_index = 1; gen_index <= MASTER_WIDTH; gen_index = gen_index + 1) begin : gen_BYTE_ALIGN
+          assign w_m_axis_tdata_align = (r_count == gen_index ? {{(MASTER_WIDTH-gen_index)*8{1'b0}}, r_fifo_tdata[(RAM_DEPTH-gen_index)*8 +:gen_index*8]}: {{MASTER_WIDTH*8{1'bz}}});
+          assign w_m_axis_tkeep_align = (r_count == gen_index ? {{(MASTER_WIDTH-gen_index){1'b0}}, r_fifo_tkeep[(RAM_DEPTH-gen_index) +:gen_index]}: {{MASTER_WIDTH{1'bz}}});
+        end
+        
+        for(gen_index = MASTER_WIDTH+1; gen_index < RAM_DEPTH; gen_index = gen_index + 1) begin : gen_END_OF_BYTE_CHECK
+          assign w_valid_bytes_left_in_range = (r_count == gen_index ? |r_fifo_tkeep[RAM_DEPTH-(gen_index-MASTER_WIDTH) +:(gen_index-MASTER_WIDTH)] : 1'bz);
         end
       end
       
@@ -292,6 +292,12 @@ module axis_data_width_converter #(
                   r_ready <= 1'b1;
                 end else begin
                   r_count  <= (w_get_data ? r_count - MASTER_WIDTH : r_count);
+                  
+                  if(w_valid_bytes_left == 1'b0) begin
+                    r_state <= READY;
+                    r_count <= {RAM_DEPTH_POW{1'b0}};
+                    r_ready <= 1'b1;
+                  end
                 end
               end
             end
